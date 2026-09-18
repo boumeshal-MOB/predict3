@@ -826,6 +826,220 @@
       .legend { justify-content: flex-start; margin-top: 9px; }
       .table-footer { align-items: stretch; flex-direction: column; }
     }
+
+    /* Vue Client : même système de composants que la vue Assureur,
+       avec une identité volontairement neutre. */
+    :root {
+      --navy: #353733;
+      --navy-2: #44463f;
+      --axa-blue: #786a5b;
+      --blue: #6e6256;
+      --blue-dark: #4f4a43;
+      --blue-soft: #f3eee7;
+      --light-blue: #a48768;
+      --cyan: #8d735a;
+      --ink: #2c302d;
+      --text: #2c302d;
+      --muted: #6d716c;
+      --line: #dfdbd2;
+      --border: #dfdbd2;
+      --bg: #f5f2ec;
+      --canvas: #f5f2ec;
+      --shadow: 0 10px 30px rgba(58, 54, 47, .09);
+    }
+
+    body {
+      color: var(--text);
+      background: linear-gradient(180deg, #f1eee8 0%, #f8f6f2 100%);
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible { outline-color: rgba(141, 115, 90, .35); }
+
+    .sidebar {
+      background: linear-gradient(180deg, #343833, #4b4e46);
+      box-shadow: 8px 0 30px rgba(55, 52, 46, .14);
+    }
+    .brand-mark {
+      color: #3b3d38;
+      background: linear-gradient(135deg, #fff, #eee7dc);
+    }
+    .menu .nav-btn:hover,
+    .menu .nav-btn[aria-selected="true"] {
+      background: rgba(238, 225, 206, .16);
+      box-shadow: inset 3px 0 0 #d1b48d;
+    }
+    .sidebar-overview::before { background: rgba(219, 191, 152, .18); }
+    .sidebar-overview-visual {
+      background: radial-gradient(circle at 30% 20%, rgba(219, 191, 152, .30), transparent 40%), linear-gradient(145deg, #3a3d38, #626257);
+    }
+
+    .operational-banner {
+      min-height: 76px;
+      padding: 16px 20px;
+      border-color: #d7c9b5;
+      background: rgba(247, 241, 231, .97);
+      box-shadow: 0 10px 28px rgba(71, 60, 43, .11);
+    }
+    .banner-light {
+      width: 19px;
+      height: 19px;
+      box-shadow: 0 0 0 7px rgba(133,146,166,.14);
+    }
+    .banner-light.green { box-shadow: 0 0 0 7px rgba(34,168,97,.14); }
+    .banner-light.orange { box-shadow: 0 0 0 7px rgba(245,158,11,.16); }
+    .banner-light.red { box-shadow: 0 0 0 7px rgba(195,41,58,.14); }
+    .banner-state { gap: 15px; }
+    .banner-state strong { color: #3d382e; font-size: 14px; }
+    .banner-state span { color: #756b5d; font-size: 11px; }
+
+    .title-wrap .eyebrow,
+    .site-banner .eyebrow,
+    .filter-summary { color: #756554 !important; }
+    .title-wrap h1,
+    .section-head h2,
+    .chart-title h3,
+    .site-banner h2,
+    .site-fact strong,
+    .status-inline span,
+    .kpi-value,
+    .general-item strong,
+    .dialog-head h3 { color: var(--text); }
+
+    .btn.primary,
+    .btn-primary {
+      color: #fff;
+      background: linear-gradient(135deg, #3e403b, #71695f);
+    }
+    .btn:hover { box-shadow: 0 6px 18px rgba(67, 60, 51, .10); }
+    .support-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 42px;
+      padding: 7px 11px;
+      border: 1px solid #e5cda7;
+      border-radius: 12px;
+      color: #8a5905;
+      background: #fff7e8;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .support-chip::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--orange);
+    }
+
+    .filter-panel.filters { margin-bottom: 20px; }
+    .info-tip {
+      border-color: #c7b59e;
+      color: #6f5f4e;
+      background: #faf7f2;
+    }
+    .select:focus,
+    .input:focus { border-color: #a48768; box-shadow: 0 0 0 3px rgba(164,135,104,.14); }
+    .field.is-active-filter label { color: #6f5f4e; }
+    .field.is-active-filter > .select,
+    .field.is-active-filter > .input {
+      border-color: #a48768;
+      background: #f7f2eb;
+      box-shadow: 0 0 0 3px rgba(164,135,104,.10);
+    }
+    .field.is-active-filter > label::after {
+      background: #8d735a;
+      box-shadow: 0 0 0 3px rgba(141,115,90,.12);
+    }
+
+    .kpi-grid { align-items: stretch; }
+    .kpi-card { min-height: 172px; }
+    .kpi-card::after {
+      background: linear-gradient(135deg, rgba(183, 157, 126, .16), rgba(111, 98, 86, .04));
+    }
+
+    .chart-card { min-height: 430px; }
+    .chart-head.chart-title {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto;
+      grid-template-areas: "heading period" "legend legend";
+      align-items: start;
+      row-gap: 10px;
+    }
+    .chart-head.chart-title > div:first-child { grid-area: heading; }
+    .chart-head.chart-title > .chart-period { grid-area: period; }
+    .chart-head.chart-title > .legend { grid-area: legend; justify-content: flex-start; }
+    .chart-period {
+      border-color: #d4c6b4;
+      color: #50483f;
+      background: #f4efe7;
+    }
+    .chart-period.is-local {
+      border-color: #786a5b;
+      color: #fff;
+      background: #786a5b;
+    }
+    .legend-item,
+    .annual-hint,
+    .chart-empty { background: #faf8f4; }
+    .chart-box,
+    .chart-box svg { min-height: 305px; height: 305px; }
+    .site-banner { margin-top: 20px; }
+    .general-info { margin-bottom: 0; }
+    .general-item { background: #faf8f4; }
+    th { background: #f4f1ec; }
+    .table-footer { background: #faf8f4; }
+    .event-pill { color: #5d554c; background: #f3eee7; }
+    .detail-btn { color: #6f5f4e; }
+    .toast { background: rgba(52,56,51,.97); }
+
+    @media (max-width: 720px) {
+      .operational-banner { top: 6px; }
+      .banner-light { width: 17px; height: 17px; box-shadow: 0 0 0 5px rgba(133,146,166,.14); }
+      .banner-light.green { box-shadow: 0 0 0 5px rgba(34,168,97,.14); }
+      .banner-light.orange { box-shadow: 0 0 0 5px rgba(245,158,11,.16); }
+      .banner-light.red { box-shadow: 0 0 0 5px rgba(195,41,58,.14); }
+      .chart-head.chart-title { display: grid; grid-template-columns: 1fr; grid-template-areas: "heading" "period" "legend"; }
+      .chart-period { width: 100%; }
+      .support-chip { width: 100%; }
+    }
+
+    @media print {
+      @page { size: A4 landscape; margin: 10mm; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body { background: #fff !important; }
+      .app.page { display: block; }
+      .sidebar,
+      .top-actions,
+      .banner-action,
+      .support-actions,
+      #history-view,
+      dialog,
+      .toast { display: none !important; }
+      .main { padding: 0; }
+      .topbar,
+      .operational-banner { position: static; }
+      .operational-banner { margin-bottom: 12px; box-shadow: none; }
+      #dashboard-view { display: block !important; }
+      .filter-panel.filters { grid-template-columns: repeat(3, 1fr); box-shadow: none; }
+      .filter-panel .btn,
+      .custom-dates[hidden] { display: none !important; }
+      .kpi-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+      .kpi-card { min-height: 138px; padding: 14px; }
+      .chart-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .chart-card { min-height: 360px; padding: 12px; break-inside: avoid; box-shadow: none; }
+      .chart-card.full { grid-column: 1 / -1; }
+      .chart-box,
+      .chart-box svg { min-height: 250px; height: 250px; }
+      .site-banner,
+      .general-info,
+      .filter-panel,
+      .kpi-card { break-inside: avoid; box-shadow: none; }
+      .content { padding: 0; }
+    }
   </style>
 </head>
 <body>
@@ -865,45 +1079,19 @@
           <p class="topbar-subtitle">Suivi des équipements, incidents, interventions et contrôles annuels.</p>
         </div>
         <div class="top-actions">
-          <span class="demo-chip">Données de démonstration</span>
-          <button class="btn primary" type="button" id="export-csv">Exporter en CSV</button>
+          <button class="btn" type="button" id="export-csv">Exporter en CSV</button>
+          <button class="btn primary" type="button" id="export-pdf">Exporter en PDF</button>
         </div>
       </header>
 
       <section class="operational-banner" id="operational-banner" aria-label="État opérationnel courant">
         <div class="banner-state"><i class="banner-light" id="site-banner-light"></i><div><strong id="site-banner-title">État du parc E‑PREDICT</strong><span id="site-banner-detail">Calcul en cours…</span></div></div>
         <div class="banner-state"><i class="banner-light" id="hmi-banner-light"></i><div><strong id="hmi-banner-title">État de la SCAPREDICT</strong><span id="hmi-banner-detail">Calcul en cours…</span></div></div>
-        <button class="btn banner-action" type="button" id="show-history">Afficher l’historique</button>
+        <button class="btn banner-action" type="button" id="show-history" aria-expanded="false" aria-controls="history-view">Afficher l’historique</button>
       </section>
 
       <div class="content">
         <section class="view" id="dashboard-view" role="tabpanel" aria-labelledby="tab-dashboard">
-          <div class="site-banner card">
-            <div>
-              <div class="eyebrow" style="color:#79d8f4">SITE CLIENT</div>
-              <h2>SYRINXPAN · Site Horizon</h2>
-              <p>19 avenue des Entrepreneurs, 95400 · Référence SITE‑SYRINXPAN‑001</p>
-            </div>
-            <div class="site-fact"><span>État actuel</span><strong class="status-inline"><i class="status-dot"></i><span id="site-status">Alerte système</span></strong></div>
-            <div class="site-fact"><span>IHM / SCAPREDICT</span><strong>HMI-C0CE17757F0B</strong></div>
-            <div class="site-fact"><span>Parc déclaré par MQTT</span><strong><span id="device-count-banner">3</span> E‑PREDICT</strong></div>
-          </div>
-
-          <section class="general-info card" aria-labelledby="general-title">
-            <div class="section-head"><div><h2 id="general-title">Informations générales</h2><p>Coordonnées du site et accès à l’assistance.</p></div></div>
-            <div class="general-grid">
-              <div class="general-item"><span>Raison sociale</span><strong>SYRINXPAN</strong></div>
-              <div class="general-item"><span>Nom du site</span><strong>Site Horizon</strong></div>
-              <div class="general-item"><span>Adresse</span><strong>19 avenue des Entrepreneurs, 95400</strong></div>
-              <div class="general-item"><span>Contact du site</span><strong>À renseigner · À renseigner</strong></div>
-              <div class="general-item"><span>Support HDSN</span><strong>sav@hdsn.fr</strong></div>
-              <div class="general-item"><span>Dernier message reçu</span><strong id="last-message">—</strong></div>
-              <div class="general-item"><span>Seuil sans communication</span><strong>60 min · configurable</strong></div>
-              <div class="general-item"><span>Notifications</span><strong>Watchdog BTM configurable · e-mail/SMS à cadrer</strong></div>
-            </div>
-            <div class="support-actions"><button class="btn primary" type="button" id="feedback-button">Ouvrir une demande via Feedback BTM</button><span class="demo-chip">Urgence : coordonnées et hotline à renseigner</span></div>
-          </section>
-
           <section class="filter-panel card filters" aria-labelledby="filters-title">
             <h2 class="sr-only" id="filters-title">Filtres globaux</h2>
             <div class="filter-row">
@@ -994,7 +1182,7 @@
                 <div class="chart-head chart-title">
                   <div><h3>KPI Délai d’intervention</h3><p>Délai entre la première alarme et son acquittement sur l’IHM</p></div>
                   <select class="chart-period" id="period-delay" aria-label="Période du graphique de délai"></select>
-                  <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--legend-color:#00a4d6"></i>Délai moyen</span><span class="legend-item"><i class="legend-swatch" style="--legend-color:#d9364f"></i>Objectif 15 min</span></div>
+                  <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--legend-color:#8d735a"></i>Délai moyen</span><span class="legend-item"><i class="legend-swatch" style="--legend-color:#d9364f"></i>Objectif 15 min</span></div>
                 </div>
                 <div class="chart-box" id="delay-chart" aria-live="polite"></div>
               </article>
@@ -1002,17 +1190,44 @@
                 <div class="chart-head chart-title">
                   <div><h3>Nombre d’incidents par période</h3><p>Alarmes, alertes, déconnexions et événements système</p></div>
                   <select class="chart-period" id="period-incidents" aria-label="Période du graphique des incidents"></select>
-                  <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--legend-color:#0067b9"></i>Incidents</span></div>
+                  <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--legend-color:#667065"></i>Incidents</span></div>
                 </div>
                 <div class="chart-box" id="incident-chart" aria-live="polite"></div>
               </article>
             </div>
+          </section>
+
+          <div class="site-banner card">
+            <div>
+              <div class="eyebrow">SITE CLIENT</div>
+              <h2>SYRINXPAN · Site Horizon</h2>
+              <p>19 avenue des Entrepreneurs, 95400 · Référence SITE‑SYRINXPAN‑001</p>
+            </div>
+            <div class="site-fact"><span>État actuel</span><strong class="status-inline"><i class="status-dot"></i><span id="site-status">Alerte système</span></strong></div>
+            <div class="site-fact"><span>IHM / SCAPREDICT</span><strong>HMI-C0CE17757F0B</strong></div>
+            <div class="site-fact"><span>Parc déclaré par MQTT</span><strong><span id="device-count-banner">3</span> E‑PREDICT</strong></div>
+          </div>
+
+          <section class="general-info card" aria-labelledby="general-title">
+            <div class="section-head"><div><h2 id="general-title">Informations générales</h2><p>Coordonnées du site et accès à l’assistance.</p></div></div>
+            <div class="general-grid">
+              <div class="general-item"><span>Raison sociale</span><strong>SYRINXPAN</strong></div>
+              <div class="general-item"><span>Nom du site</span><strong>Site Horizon</strong></div>
+              <div class="general-item"><span>Adresse</span><strong>19 avenue des Entrepreneurs, 95400</strong></div>
+              <div class="general-item"><span>Contact du site</span><strong>À renseigner · À renseigner</strong></div>
+              <div class="general-item"><span>Support HDSN</span><strong>sav@hdsn.fr</strong></div>
+              <div class="general-item"><span>Dernier message reçu</span><strong id="last-message">—</strong></div>
+              <div class="general-item"><span>Seuil sans communication</span><strong>60 min · configurable</strong></div>
+              <div class="general-item"><span>Notifications</span><strong>Watchdog BTM configurable · e-mail/SMS à cadrer</strong></div>
+            </div>
+            <div class="support-actions"><button class="btn primary" type="button" id="feedback-button">Ouvrir une demande via Feedback BTM</button><span class="support-chip">Urgence : coordonnées et hotline à renseigner</span></div>
           </section>
         </section>
 
         <section class="view" id="history-view" role="tabpanel" aria-labelledby="tab-history" hidden>
           <div class="section-head">
             <div><div class="eyebrow">TRAMES REÇUES</div><h2>Historique SCAPREDICT</h2><p>L’ensemble des informations reçues pour le site, selon les filtres globaux actifs.</p></div>
+            <button class="btn" type="button" id="close-history">← Retour au tableau de bord</button>
           </div>
           <div class="history-tools card">
             <div class="field"><label for="history-search">Rechercher</label><input class="input" id="history-search" type="search" placeholder="E-PREDICT, message, événement…"></div>
@@ -1392,21 +1607,21 @@
       return node;
     }
 
-    function chartScaffold(container, yMin, yMax, yTicks, ariaLabel) {
+    function chartScaffold(container, yMin, yMax, yTicks, ariaLabel, topMargin = 26) {
       container.innerHTML = "";
       const width = 760, height = 300;
-      const margin = { top: 26, right: 24, bottom: 42, left: 52 };
+      const margin = { top: topMargin, right: 24, bottom: 42, left: 52 };
       const innerW = width - margin.left - margin.right;
       const innerH = height - margin.top - margin.bottom;
       const svg = svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": ariaLabel, preserveAspectRatio: "none" });
       yTicks.forEach(value => {
         const y = margin.top + innerH - ((value - yMin) / (yMax - yMin)) * innerH;
-        svg.appendChild(svgEl("line", { x1: margin.left, x2: width - margin.right, y1: y, y2: y, stroke: "#e5eaf2", "stroke-width": 1 }));
-        const label = svgEl("text", { x: margin.left - 9, y: y + 4, "text-anchor": "end", fill: "#73809a", "font-size": 10 });
+        svg.appendChild(svgEl("line", { x1: margin.left, x2: width - margin.right, y1: y, y2: y, stroke: "#e7e2da", "stroke-width": 1 }));
+        const label = svgEl("text", { x: margin.left - 9, y: y + 4, "text-anchor": "end", fill: "#777b75", "font-size": 10 });
         label.textContent = value;
         svg.appendChild(label);
       });
-      svg.appendChild(svgEl("line", { x1: margin.left, x2: width - margin.right, y1: height - margin.bottom, y2: height - margin.bottom, stroke: "#cfd7e5" }));
+      svg.appendChild(svgEl("line", { x1: margin.left, x2: width - margin.right, y1: height - margin.bottom, y2: height - margin.bottom, stroke: "#cfc9bf" }));
       container.appendChild(svg);
       return { svg, width, height, margin, innerW, innerH, x: ratio => margin.left + ratio * innerW, y: value => margin.top + innerH - ((value - yMin) / (yMax - yMin)) * innerH };
     }
@@ -1416,20 +1631,27 @@
     }
 
     function addXAxis(chart, buckets, range) {
-      const maxLabels = window.innerWidth < 560 ? 4 : 7;
-      const every = Math.max(1, Math.ceil(buckets.length / maxLabels));
-      buckets.forEach((bucket, index) => {
-        if (index % every !== 0 && index !== buckets.length - 1) return;
-        const ratio = xRatioForDate(bucket.start, range);
-        const label = svgEl("text", { x: chart.x(ratio), y: chart.height - 14, "text-anchor": "middle", fill: "#73809a", "font-size": 10 });
-        label.textContent = bucket.label;
+      const duration = Math.max(DAY, range.end.getTime() - range.start.getTime());
+      const durationDays = duration / DAY;
+      const tickCount = window.innerWidth < 560 ? 4 : 7;
+      const seenLabels = new Set();
+      for (let index = 0; index < tickCount; index += 1) {
+        const ratio = tickCount === 1 ? 0 : index / (tickCount - 1);
+        const date = new Date(range.start.getTime() + duration * ratio);
+        const labelText = durationDays > 75
+          ? new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit", timeZone: "UTC" }).format(date)
+          : shortDate(date);
+        if (seenLabels.has(labelText)) continue;
+        seenLabels.add(labelText);
+        const label = svgEl("text", {
+          x: chart.x(ratio),
+          y: chart.height - 14,
+          "text-anchor": index === 0 ? "start" : index === tickCount - 1 ? "end" : "middle",
+          fill: "#777b75",
+          "font-size": 10
+        });
+        label.textContent = labelText;
         chart.svg.appendChild(label);
-      });
-      const lastBucketEnd = buckets[buckets.length - 1].end;
-      if (range.end.getTime() - lastBucketEnd.getTime() > 2 * DAY) {
-        const endLabel = svgEl("text", { x: chart.x(1), y: chart.height - 14, "text-anchor": "end", fill: "#9aa5b8", "font-size": 10 });
-        endLabel.textContent = shortDate(range.end);
-        chart.svg.appendChild(endLabel);
       }
     }
 
@@ -1440,7 +1662,7 @@
     function renderLineChart(container, buckets, values, options) {
       const numeric = values.filter(value => value !== null && Number.isFinite(value));
       if (!numeric.length) { showChartEmpty(container, options.emptyTitle, options.emptyDetail); return; }
-      const chart = chartScaffold(container, options.yMin, options.yMax, options.yTicks, options.ariaLabel);
+      const chart = chartScaffold(container, options.yMin, options.yMax, options.yTicks, options.ariaLabel, options.annotation ? 48 : 26);
       addXAxis(chart, buckets, options.range);
       const segments = [];
       let current = [];
@@ -1491,6 +1713,54 @@
       }
     }
 
+    function renderMetricBarChart(container, buckets, values, options) {
+      const numeric = values.filter(value => value !== null && Number.isFinite(value));
+      if (!numeric.length) { showChartEmpty(container, options.emptyTitle, options.emptyDetail); return; }
+      const dataMax = Math.max(...numeric, options.reference || 0);
+      const yMax = Math.max(options.yMax, Math.ceil(dataMax / 10) * 10);
+      const yTicks = [0, yMax / 4, yMax / 2, yMax * .75, yMax].map(value => Math.round(value));
+      const chart = chartScaffold(container, 0, yMax, yTicks, options.ariaLabel);
+      addXAxis(chart, buckets, options.range);
+
+      if (options.reference !== undefined) {
+        const y = chart.y(options.reference);
+        chart.svg.appendChild(svgEl("line", {
+          x1: chart.margin.left,
+          x2: chart.width - chart.margin.right,
+          y1: y,
+          y2: y,
+          stroke: options.referenceColor,
+          "stroke-width": 2,
+          "stroke-dasharray": "7 6"
+        }));
+      }
+
+      const stepRatio = buckets.length > 1
+        ? xRatioForDate(buckets[1].start, options.range) - xRatioForDate(buckets[0].start, options.range)
+        : Math.min(1, DAY / Math.max(DAY, options.range.end - options.range.start));
+      const slot = chart.innerW * Math.max(.012, stepRatio);
+      const width = Math.max(10, Math.min(42, slot * .56));
+      values.forEach((value, index) => {
+        if (value === null || !Number.isFinite(value)) return;
+        const height = value / yMax * chart.innerH;
+        const midpoint = new Date((buckets[index].start.getTime() + buckets[index].end.getTime()) / 2);
+        const x = chart.x(xRatioForDate(midpoint, options.range)) - width / 2;
+        const y = chart.margin.top + chart.innerH - height;
+        const bar = svgEl("rect", {
+          x,
+          y,
+          width,
+          height: Math.max(3, height),
+          rx: Math.min(7, width / 4),
+          fill: options.color
+        });
+        const title = svgEl("title");
+        title.textContent = `${buckets[index].label} : ${value.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}${options.unit}`;
+        bar.appendChild(title);
+        chart.svg.appendChild(bar);
+      });
+    }
+
     function renderBarChart(container, buckets, values, range) {
       const max = Math.max(1, ...values);
       const yMax = Math.max(4, Math.ceil(max / 2) * 2);
@@ -1504,7 +1774,7 @@
         const center = chart.x(xRatioForDate(buckets[index].start, range)) + slot / 2;
         const x = center - width / 2;
         const y = chart.margin.top + chart.innerH - height;
-        const bar = svgEl("rect", { x, y, width, height: Math.max(value ? 2 : 0, height), rx: Math.min(5, width / 3), fill: "#0067b9" });
+        const bar = svgEl("rect", { x, y, width, height: Math.max(value ? 2 : 0, height), rx: Math.min(5, width / 3), fill: "#667065" });
         const title = svgEl("title");
         title.textContent = `${buckets[index].label} : ${value} incident${value > 1 ? "s" : ""}`;
         bar.appendChild(title);
@@ -1545,8 +1815,8 @@
           tooltip: `${dateOnly(control.nextInspection)} · E‑PREDICT : ${control.shortName} · Type d’équipement : ${control.equipmentType} · ${control.location}`
         } : null
       });
-      renderLineChart(byId("delay-chart"), delayBuckets, delay, {
-        yMin: 0, yMax: 40, yTicks: [0, 10, 20, 30, 40], color: "#00a4d6", unit: " min", reference: 15, referenceColor: "#d9364f",
+      renderMetricBarChart(byId("delay-chart"), delayBuckets, delay, {
+        yMax: 40, color: "#8d735a", unit: " min", reference: 15, referenceColor: "#d9364f",
         ariaLabel: "Évolution du délai moyen d’intervention", range:delayRange,
         emptyTitle: state.incident !== "all" && state.incident !== "alarm" ? "Le délai concerne uniquement les alarmes" : "Aucune alarme acquittée",
         emptyDetail: "Le délai est calculé entre la première alarme et son Acknowledge."
@@ -1684,6 +1954,8 @@
       byId("dashboard-view").hidden = view !== "dashboard";
       byId("history-view").hidden = view !== "history";
       byId("page-title").textContent = view === "dashboard" ? "Dashboard du site" : "Historique du site";
+      byId("show-history").textContent = view === "history" ? "Fermer l’historique" : "Afficher l’historique";
+      byId("show-history").setAttribute("aria-expanded", String(view === "history"));
       if (view === "history") renderHistory(); else renderSummary();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -1730,6 +2002,31 @@
       showToast(`${rows.length} trame${rows.length > 1 ? "s" : ""} exportée${rows.length > 1 ? "s" : ""}`);
     }
 
+    function exportPdf() {
+      const button = byId("export-pdf");
+      if (button.disabled) return;
+      const previousLabel = button.textContent;
+      const previousTitle = byId("page-title").textContent;
+      let cleaned = false;
+      const cleanup = () => {
+        if (cleaned) return;
+        cleaned = true;
+        document.body.classList.remove("pdf-exporting");
+        byId("page-title").textContent = previousTitle;
+        button.disabled = false;
+        button.textContent = previousLabel;
+      };
+      button.disabled = true;
+      button.textContent = "Préparation du PDF…";
+      byId("page-title").textContent = "Dashboard du site";
+      document.body.classList.add("pdf-exporting");
+      window.addEventListener("afterprint", cleanup, { once: true });
+      window.setTimeout(() => {
+        try { window.print(); }
+        finally { window.setTimeout(cleanup, 100); }
+      }, 80);
+    }
+
     let toastTimer;
     function showToast(message) {
       const toast = byId("toast");
@@ -1741,7 +2038,8 @@
 
     initChartPeriodControls();
     $$(".nav-btn").forEach(button => button.addEventListener("click", () => switchView(button.dataset.view)));
-    byId('show-history').addEventListener('click', () => switchView('history'));
+    byId('show-history').addEventListener('click', () => switchView(state.view === 'history' ? 'dashboard' : 'history'));
+    byId('close-history').addEventListener('click', () => switchView('dashboard'));
     byId('feedback-button').addEventListener('click', () => showToast('Ouverture du module Feedback BTM à connecter en intégration'));
     byId("period-filter").addEventListener("change", event => {
       state.period = event.target.value;
@@ -1773,6 +2071,7 @@
     byId("dialog-close").addEventListener("click", () => byId("event-dialog").close());
     byId("event-dialog").addEventListener("click", event => { if (event.target === byId("event-dialog")) byId("event-dialog").close(); });
     byId("export-csv").addEventListener("click", exportCsv);
+    byId("export-pdf").addEventListener("click", exportPdf);
     window.addEventListener("resize", () => { if (state.view === "dashboard") renderSummary(); });
 
     renderAll();
