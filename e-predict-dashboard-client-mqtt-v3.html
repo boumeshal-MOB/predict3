@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTM · Dashboard E-PREDICT Client</title>
+  <style>
+    :root {
+      --navy: #101c45;
+      --navy-2: #17265b;
+      --blue: #0067b9;
+      --blue-dark: #004b87;
+      --blue-soft: #eaf4fb;
+      --cyan: #00a4d6;
+      --green: #17875d;
+      --green-soft: #e9f7f1;
+      --orange: #e77724;
+      --orange-soft: #fff3e8;
+      --red: #d9364f;
+      --red-soft: #fff0f2;
+      --ink: #17213a;
+      --muted: #64708a;
+      --line: #dce3ee;
+      --surface: #ffffff;
+      --canvas: #f3f6fa;
+      --shadow: 0 8px 24px rgba(27, 42, 78, .08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--canvas);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    button, select, input { font: inherit; }
+    button, select { cursor: pointer; }
+    button:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(0, 103, 185, .24);
+      outline-offset: 2px;
+    }
+
+    .app { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 24px 18px;
+      color: #fff;
+      background: linear-gradient(175deg, var(--navy), #0b1435 82%);
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 2px 8px 14px; }
+    .brand-mark {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: grid; place-items: center;
+      font-weight: 800; letter-spacing: -.04em;
+      color: var(--navy); background: #fff;
+      box-shadow: 0 5px 16px rgba(0,0,0,.18);
+    }
+    .brand-copy strong { display: block; font-size: 15px; letter-spacing: .02em; }
+    .brand-copy span { color: #aeb9d8; font-size: 11px; }
+    .nav-title { color: #8796be; font-size: 10px; font-weight: 800; letter-spacing: .16em; padding: 0 12px; }
+    .nav { display: grid; gap: 8px; }
+    .nav-btn {
+      width: 100%; border: 0; border-radius: 10px; padding: 12px 14px;
+      color: #bdc7e3; background: transparent;
+      display: flex; align-items: center; gap: 11px; text-align: left;
+      transition: background .18s ease, color .18s ease;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .nav-btn[aria-selected="true"] { color: #fff; background: rgba(0, 164, 214, .22); box-shadow: inset 3px 0 0 var(--cyan); }
+    .nav-icon { width: 20px; height: 20px; display: grid; place-items: center; font-size: 16px; }
+    .site-mini {
+      margin-top: auto; padding: 15px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px;
+      background: rgba(255,255,255,.05);
+    }
+    .site-mini .eyebrow { color: #8ea0ca; }
+    .site-mini strong { display: block; margin-top: 5px; }
+    .site-mini span { display: block; color: #b7c2df; font-size: 12px; margin-top: 3px; }
+
+    .main { min-width: 0; }
+    .topbar {
+      min-height: 82px; padding: 18px 32px; background: #fff; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      position: sticky; top: 0; z-index: 8;
+    }
+    .title-wrap { min-width: 0; }
+    .title-wrap h1 { margin: 0; font-size: 22px; letter-spacing: -.025em; }
+    .title-wrap p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .demo-chip {
+      display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px;
+      border-radius: 999px; color: #82500b; background: #fff5d9; font-size: 11px; font-weight: 700;
+    }
+    .demo-chip::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #e8a11c; }
+    .btn {
+      min-height: 38px; padding: 8px 13px; border-radius: 9px; border: 1px solid var(--line);
+      color: var(--ink); background: #fff; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:hover { border-color: #a9b8ce; }
+    .btn-primary { color: #fff; border-color: var(--blue); background: var(--blue); }
+    .btn-primary:hover { border-color: var(--blue-dark); background: var(--blue-dark); }
+    .btn-ghost { background: transparent; }
+
+    .content { padding: 26px 32px 40px; max-width: 1660px; margin: 0 auto; }
+    .view[hidden] { display: none !important; }
+    .section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+    .section-head h2 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+    .section-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .eyebrow { font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--blue); }
+
+    .site-banner {
+      display: grid; grid-template-columns: minmax(250px, 1.4fr) repeat(3, minmax(130px, .6fr));
+      gap: 18px; padding: 19px 22px; margin-bottom: 18px;
+      border-radius: var(--radius); color: #fff;
+      background: linear-gradient(115deg, #152452 0%, #084f88 67%, #007ea9 100%);
+      box-shadow: var(--shadow);
+    }
+    .site-banner h2 { margin: 4px 0 5px; font-size: 21px; }
+    .site-banner p { margin: 0; color: #cad7ed; font-size: 12px; }
+    .site-fact { border-left: 1px solid rgba(255,255,255,.22); padding-left: 18px; display: flex; flex-direction: column; justify-content: center; }
+    .site-fact span { color: #b8c9e4; font-size: 11px; }
+    .site-fact strong { margin-top: 5px; font-size: 14px; }
+    .status-inline { display: inline-flex; align-items: center; gap: 7px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffb14a; box-shadow: 0 0 0 4px rgba(255,177,74,.18); }
+
+    .filter-panel {
+      padding: 18px 20px; margin-bottom: 20px; border: 1px solid var(--line); border-radius: var(--radius);
+      background: #fff; box-shadow: var(--shadow);
+    }
+    .filter-row { display: grid; grid-template-columns: 1.15fr 1fr 1fr auto; gap: 14px; align-items: end; }
+    .field { display: grid; gap: 6px; }
+    .field label { color: #495570; font-size: 11px; font-weight: 800; }
+    .select, .input {
+      width: 100%; min-height: 42px; padding: 8px 11px; color: var(--ink);
+      border: 1px solid #cbd5e3; border-radius: 9px; background: #fff;
+    }
+    .custom-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+    .custom-dates[hidden] { display: none; }
+    .filter-summary { margin: 12px 0 0; color: var(--muted); font-size: 11px; }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+    .kpi-card {
+      min-height: 156px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius);
+      background: #fff; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .kpi-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--accent, var(--blue)); }
+    .kpi-label { min-height: 34px; color: #56627b; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+    .kpi-value { margin-top: 7px; font-size: clamp(26px, 2.5vw, 36px); line-height: 1; font-weight: 800; letter-spacing: -.04em; }
+    .kpi-note { margin: 9px 0 0; color: var(--muted); font-size: 11px; }
+    .kpi-detail { display: block; margin-top: 3px; color: #3d4963; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .kpi-card.next-control { --accent: var(--orange); }
+    .kpi-card.operational { --accent: var(--green); }
+    .kpi-card.delay { --accent: var(--cyan); }
+    .kpi-card.incidents { --accent: var(--red); }
+    .kpi-badge { display: inline-flex; margin-top: 9px; padding: 4px 8px; border-radius: 999px; color: #875111; background: var(--orange-soft); font-size: 10px; font-weight: 800; }
+
+    .chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .chart-card {
+      min-width: 0; min-height: 390px; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius);
+      background: #fff; box-shadow: var(--shadow);
+    }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 10px; }
+    .chart-head h3 { margin: 0; font-size: 15px; }
+    .chart-head p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+    .legend { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; color: var(--muted); font-size: 10px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .legend-swatch { width: 16px; height: 3px; border-radius: 3px; background: var(--legend-color); }
+    .chart-box { width: 100%; min-height: 300px; position: relative; }
+    .chart-box svg { width: 100%; height: 300px; display: block; overflow: visible; }
+    .chart-empty { min-height: 300px; display: grid; place-items: center; color: var(--muted); text-align: center; }
+    .chart-empty strong { display: block; color: var(--ink); margin-bottom: 4px; }
+    .annual-hint { margin-top: 8px; color: var(--muted); font-size: 10px; display: flex; align-items: center; gap: 7px; }
+    .annual-hint::before { content: ""; width: 14px; border-top: 2px dashed var(--orange); }
+
+    .history-tools {
+      display: grid; grid-template-columns: minmax(220px, 1fr) 220px auto; gap: 12px; align-items: end;
+      margin-bottom: 16px; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius); background: #fff;
+    }
+    .table-card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow); }
+    .table-scroll { overflow: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 1010px; }
+    th { padding: 12px 14px; color: #52607a; background: #f5f7fb; border-bottom: 1px solid var(--line); font-size: 10px; text-align: left; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+    td { padding: 13px 14px; border-bottom: 1px solid #edf0f5; vertical-align: top; font-size: 12px; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fafcff; }
+    .event-pill { display: inline-flex; padding: 4px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; background: var(--blue-soft); color: var(--blue-dark); white-space: nowrap; }
+    .event-pill.alarm { background: var(--red-soft); color: #aa1e35; }
+    .event-pill.alert { background: var(--orange-soft); color: #9c5719; }
+    .event-pill.ok { background: var(--green-soft); color: #0d6d49; }
+    .event-pill.system { background: #f0edff; color: #5b46a7; }
+    .muted { color: var(--muted); }
+    .detail-btn { border: 0; background: transparent; color: var(--blue); font-weight: 800; padding: 3px; }
+    .detail-btn:hover { text-decoration: underline; }
+    .table-footer { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 13px 16px; border-top: 1px solid var(--line); }
+    .pagination { display: flex; align-items: center; gap: 8px; }
+    .page-btn { min-width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: #fff; }
+    .page-btn:disabled { cursor: default; opacity: .45; }
+
+    dialog { width: min(720px, calc(100vw - 32px)); max-height: 82vh; border: 0; border-radius: 14px; padding: 0; color: var(--ink); box-shadow: 0 25px 70px rgba(10,20,49,.3); }
+    dialog::backdrop { background: rgba(8,15,36,.55); }
+    .dialog-head { display: flex; justify-content: space-between; align-items: center; padding: 17px 20px; border-bottom: 1px solid var(--line); }
+    .dialog-head h3 { margin: 0; font-size: 16px; }
+    .dialog-body { padding: 18px 20px 22px; }
+    .dialog-body pre { margin: 0; padding: 16px; border-radius: 10px; color: #d9e6ff; background: #10172b; overflow: auto; font-size: 11px; line-height: 1.55; }
+    .close-btn { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 40; padding: 12px 15px; color: #fff; background: #17213a; border-radius: 10px; box-shadow: var(--shadow); opacity: 0; transform: translateY(12px); pointer-events: none; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 1180px) {
+      .app { grid-template-columns: 210px minmax(0, 1fr); }
+      .site-banner { grid-template-columns: 1fr 1fr; }
+      .site-fact:nth-child(2) { border-left: 0; padding-left: 0; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 820px) {
+      .app { display: block; }
+      .sidebar { position: sticky; height: auto; padding: 10px 14px; flex-direction: row; align-items: center; gap: 10px; }
+      .brand { padding: 0; }
+      .brand-mark { width: 38px; height: 38px; }
+      .brand-copy, .nav-title, .site-mini { display: none; }
+      .nav { margin-left: auto; display: flex; }
+      .nav-btn { width: auto; padding: 9px 11px; }
+      .nav-btn[aria-selected="true"] { box-shadow: inset 0 -3px 0 var(--cyan); }
+      .topbar { position: static; padding: 14px 18px; align-items: flex-start; }
+      .top-actions { flex-wrap: wrap; justify-content: flex-end; }
+      .content { padding: 18px; }
+      .site-banner { grid-template-columns: 1fr; }
+      .site-fact { border-left: 0; border-top: 1px solid rgba(255,255,255,.18); padding: 12px 0 0; }
+      .filter-row { grid-template-columns: 1fr 1fr; }
+      .filter-row .btn { min-height: 42px; }
+      .chart-grid { grid-template-columns: 1fr; }
+      .chart-card.full { grid-column: auto; }
+      .history-tools { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .brand-mark { width: 34px; height: 34px; font-size: 12px; }
+      .nav-icon { display: none; }
+      .nav-btn { font-size: 11px; padding: 8px 9px; }
+      .topbar { display: block; }
+      .title-wrap h1 { font-size: 18px; }
+      .top-actions { margin-top: 12px; justify-content: flex-start; }
+      .demo-chip { width: 100%; justify-content: center; }
+      .content { padding: 14px 12px 26px; }
+      .site-banner { padding: 17px; }
+      .filter-row, .custom-dates, .kpi-grid, .history-tools { grid-template-columns: 1fr; }
+      .kpi-card { min-height: 142px; }
+      .chart-card { min-height: 365px; padding: 14px; }
+      .chart-head { display: block; }
+      .legend { margin-top: 8px; justify-content: flex-start; }
+      .chart-box svg { height: 285px; }
+      .table-footer { align-items: flex-start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+
+    /* Alignement visuel avec la maquette Assureur */
+    :root {
+      --navy: #072a6c;
+      --axa-blue: #00008f;
+      --blue: #0a4db3;
+      --blue-dark: #072a6c;
+      --blue-soft: #edf5ff;
+      --light-blue: #3e86ff;
+      --cyan: #18b8ff;
+      --green: #26ad61;
+      --green-soft: #e9f8f0;
+      --orange: #f59e0b;
+      --orange-soft: #fff6e5;
+      --red: #a61f2b;
+      --red-soft: #fff0f1;
+      --ink: #183153;
+      --text: #183153;
+      --muted: #6d7c93;
+      --line: #dbe5f4;
+      --border: #dbe5f4;
+      --surface: #ffffff;
+      --card: #ffffff;
+      --bg: #f4f7fc;
+      --canvas: #f4f7fc;
+      --success: #26ad61;
+      --shadow: 0 10px 35px rgba(7, 42, 108, 0.11);
+      --radius: 22px;
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+    }
+
+    body {
+      min-height: 100vh;
+      color: var(--text);
+      background: linear-gradient(180deg, #eef4ff 0%, #f7faff 100%);
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    .app.page {
+      display: grid;
+      grid-template-columns: 224px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px 14px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      color: #fff;
+      background: linear-gradient(180deg, var(--navy), #0b3d92);
+      box-shadow: 8px 0 30px rgba(7, 42, 108, 0.12);
+      z-index: 20;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,.28) transparent;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding: 4px 4px 22px;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      color: var(--navy);
+      background: linear-gradient(135deg, #fff, #d8ecff);
+      font-weight: 900;
+      box-shadow: 0 8px 20px rgba(255,255,255,0.2);
+    }
+
+    .brand-copy { min-width: 0; }
+    .brand-copy h1 {
+      margin: 0;
+      overflow: hidden;
+      color: #fff;
+      font-size: 17px;
+      line-height: 1.2;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .brand-copy p {
+      margin: 4px 0 0;
+      overflow: hidden;
+      color: rgba(255,255,255,0.72);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .nav-title { display: none; }
+    .nav.menu { display: flex; flex-direction: column; gap: 9px; }
+    .menu .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-width: 0;
+      padding: 11px 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 13px;
+      color: rgba(255,255,255,0.92);
+      background: rgba(255,255,255,0.04);
+      overflow-wrap: anywhere;
+      font-size: 13px;
+      font-weight: 680;
+      text-align: left;
+      transition: 0.2s ease;
+    }
+    .menu .nav-btn:hover,
+    .menu .nav-btn[aria-selected="true"] {
+      color: #fff;
+      background: rgba(255,255,255,0.15);
+      box-shadow: none;
+      transform: translateX(2px);
+    }
+    .nav-icon { display: none; }
+
+    .sidebar-overview {
+      position: relative;
+      display: block;
+      margin-top: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 18px;
+      background: linear-gradient(155deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 14px 32px rgba(0,0,0,.14);
+      backdrop-filter: blur(12px);
+    }
+    .sidebar-overview::before {
+      content: "";
+      position: absolute;
+      width: 115px;
+      height: 115px;
+      top: -58px;
+      right: -48px;
+      border-radius: 50%;
+      background: rgba(63,147,255,.22);
+      pointer-events: none;
+    }
+    .sidebar-overview-visual {
+      display: grid;
+      place-items: center;
+      min-height: 112px;
+      background: radial-gradient(circle at 30% 20%, rgba(34,143,255,.55), transparent 38%), linear-gradient(145deg, #061f52, #0a4db3);
+    }
+    .sidebar-overview-logo {
+      display: grid;
+      place-items: center;
+      width: 72px;
+      height: 72px;
+      border: 1px solid rgba(255,255,255,.72);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -.06em;
+      box-shadow: 0 12px 28px rgba(0,0,0,.18);
+    }
+    .sidebar-overview-body { position: relative; padding: 14px; min-width: 0; }
+    .sidebar-overview-body h3 { margin: 0 0 7px; color: #fff; font-size: 15px; line-height: 1.25; }
+    .sidebar-overview-body p { margin: 0; color: rgba(255,255,255,.72); font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+    .sidebar-overview-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 12px; }
+    .sidebar-mini-stat { min-width: 0; padding: 8px; border: 1px solid rgba(255,255,255,.12); border-radius: 11px; background: rgba(255,255,255,.08); }
+    .sidebar-mini-stat strong { display: block; color: #fff; font-size: 16px; line-height: 1.1; }
+    .sidebar-mini-stat span { display: block; margin-top: 3px; color: rgba(255,255,255,.65); font-size: 9px; line-height: 1.25; overflow-wrap: anywhere; }
+
+    .main { min-width: 0; padding: 24px; }
+    .operational-banner {
+      position: sticky;
+      top: 12px;
+      z-index: 18;
+      display: grid;
+      grid-template-columns: minmax(260px, 1.5fr) minmax(220px, .8fr) auto;
+      gap: 14px;
+      align-items: center;
+      margin: 0 0 18px;
+      padding: 13px 16px;
+      border: 1px solid #decfb5;
+      border-radius: 16px;
+      background: rgba(248,243,233,.96);
+      box-shadow: 0 10px 28px rgba(71,54,26,.12);
+      backdrop-filter: blur(12px);
+    }
+    .banner-state { display:flex; align-items:center; gap:11px; min-width:0; }
+    .banner-light { width:13px; height:13px; flex:0 0 auto; border-radius:50%; background:#8592a6; box-shadow:0 0 0 5px rgba(133,146,166,.14); }
+    .banner-light.green { background:#22a861; box-shadow:0 0 0 5px rgba(34,168,97,.14); }
+    .banner-light.orange { background:#f59e0b; box-shadow:0 0 0 5px rgba(245,158,11,.16); }
+    .banner-light.red { background:#c3293a; box-shadow:0 0 0 5px rgba(195,41,58,.14); }
+    .banner-state strong { display:block; color:#41371f; font-size:13px; }
+    .banner-state span { display:block; margin-top:3px; color:#786b51; font-size:10px; line-height:1.35; }
+    .banner-action { white-space:nowrap; }
+    .topbar {
+      position: static;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 0;
+      margin-bottom: 18px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+    .title-wrap .eyebrow {
+      margin: 0 0 6px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .title-wrap h1 { margin: 0; color: var(--navy); font-size: 30px; letter-spacing: 0; }
+    .title-wrap .topbar-subtitle { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+    .top-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .demo-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 42px;
+      padding: 7px 11px;
+      border: 1px solid #f3d59f;
+      border-radius: 12px;
+      color: #9c6200;
+      background: #fff8e9;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .demo-chip::before { width: 8px; height: 8px; background: var(--orange); }
+
+    .btn {
+      min-height: 42px;
+      padding: 11px 15px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--navy);
+      background: #fff;
+      font-weight: 750;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+    .btn:hover { border-color: var(--border); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(7,42,108,.1); }
+    .btn.primary,
+    .btn-primary { border-color: transparent; color: #fff; background: linear-gradient(135deg, var(--navy), var(--blue)); }
+    .btn-ghost { background: #fff; }
+
+    .content { max-width: none; margin: 0; padding: 0 0 16px; }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .site-banner {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.4fr) repeat(3, minmax(130px, .55fr));
+      gap: 0;
+      margin-bottom: 18px;
+      padding: 17px 20px;
+      color: var(--text);
+      background: #fff;
+    }
+    .general-info { margin-bottom:18px; padding:18px 20px; }
+    .general-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .general-item { padding:12px; border:1px solid var(--border); border-radius:12px; background:#f8fbff; }
+    .general-item span { display:block; color:var(--muted); font-size:10px; font-weight:800; text-transform:uppercase; }
+    .general-item strong { display:block; margin-top:5px; color:var(--navy); font-size:12px; overflow-wrap:anywhere; }
+    .support-actions { display:flex; gap:9px; flex-wrap:wrap; margin-top:14px; }
+    .chart-period { min-width:126px; height:34px; padding:0 9px; border:1px solid #b9d8ef; border-radius:10px; color:var(--navy); background:#eaf7ff; font-size:10px; font-weight:800; }
+    .chart-period.is-local { border-color:var(--axa-blue); color:#fff; background:var(--axa-blue); }
+    .site-banner .eyebrow { margin: 0 0 5px; color: var(--blue) !important; font-size: 10px; }
+    .site-banner h2 { margin: 0 0 4px; color: var(--navy); font-size: 20px; }
+    .site-banner p { margin: 0; color: var(--muted); font-size: 12px; }
+    .site-fact {
+      min-width: 0;
+      padding: 4px 16px;
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .site-fact span { color: var(--muted); font-size: 11px; }
+    .site-fact strong { margin-top: 5px; color: var(--navy); font-size: 14px; }
+    .status-inline { display: inline-flex; flex-direction: row; align-items: center; gap: 8px; }
+    .status-inline span { color: var(--navy); font-size: 14px; }
+    .status-dot { width: 9px; height: 9px; background: #ff7a7a; box-shadow: none; }
+
+    .filter-panel.filters {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(150px, 1fr)) auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 18px;
+      padding: 16px;
+    }
+    .filter-row { display: contents; }
+    .field { display: block; min-width: 0; }
+    .field label {
+      display: block;
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+    .info-tip {
+      display: inline-grid;
+      place-items: center;
+      width: 15px;
+      height: 15px;
+      margin-left: 5px;
+      border: 1px solid #9cb8e2;
+      border-radius: 50%;
+      color: var(--blue);
+      background: #f4f8ff;
+      font-size: 9px;
+      font-style: normal;
+      font-weight: 900;
+      line-height: 1;
+      text-transform: none;
+      vertical-align: 1px;
+      cursor: help;
+    }
+    .info-tip:focus-visible { outline: 2px solid var(--light-blue); outline-offset: 2px; }
+    .select,
+    .input {
+      width: 100%;
+      height: 42px;
+      min-height: 42px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      outline: none;
+      color: var(--text);
+      background: #fff;
+      font-weight: 650;
+    }
+    .select:focus,
+    .input:focus { border-color: var(--light-blue); box-shadow: 0 0 0 3px rgba(62,134,255,.12); }
+    .field.is-active-filter label { color: var(--axa-blue); }
+    .field.is-active-filter > .select,
+    .field.is-active-filter > .input {
+      border-color: rgba(0,0,143,.68);
+      background: #f3f5ff;
+      box-shadow: 0 0 0 3px rgba(0,0,143,.08);
+    }
+    .field.is-active-filter > label::after {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-left: 6px;
+      border-radius: 50%;
+      vertical-align: 1px;
+      background: var(--axa-blue);
+      box-shadow: 0 0 0 3px rgba(0,0,143,.10);
+    }
+    .custom-dates {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(170px, 220px)) minmax(180px, 1fr);
+      gap: 10px;
+      align-items: end;
+      margin: 0;
+      padding-top: 2px;
+      border: 0;
+    }
+    .filter-summary { grid-column: 1 / -1; margin: 0; color: var(--blue); font-size: 11px; font-weight: 800; overflow-wrap: anywhere; }
+
+    .section-head { margin: 0 0 12px; align-items: center; }
+    .section-head .eyebrow { display: none; }
+    .section-head h2 { margin: 0; color: var(--navy); font-size: 20px; letter-spacing: 0; }
+    .section-head p { color: var(--muted); font-size: 12px; }
+
+    .kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 18px; }
+    .kpi-card {
+      position: relative;
+      min-height: 156px;
+      overflow: hidden;
+      padding: 20px;
+    }
+    .kpi-card::before { display: none; }
+    .kpi-card::after {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      right: -38px;
+      top: -38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(24,184,255,.18), rgba(10,77,179,.05));
+      pointer-events: none;
+    }
+    .kpi-label {
+      min-height: 0;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1.3;
+      text-transform: none;
+      overflow-wrap: anywhere;
+    }
+    .kpi-value { margin: 0 0 6px; color: var(--navy); font-size: 32px; font-weight: 850; line-height: 1.12; letter-spacing: 0; }
+    .kpi-note { margin: 0; color: var(--muted); font-size: 12px; font-weight: 650; line-height: 1.35; overflow-wrap: anywhere; }
+    .kpi-card.operational .kpi-note { color: var(--green); }
+    .kpi-card.delay .kpi-note { color: var(--green); }
+    .kpi-card.incidents .kpi-note { color: #b36e00; }
+    .kpi-detail { margin-top: 2px; font-weight: 650; }
+    .kpi-badge { margin-top: 8px; padding: 5px 8px; color: #9b6500; background: #fff4da; }
+
+    .chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .chart-card {
+      min-width: 0;
+      min-height: 400px;
+      padding: 18px;
+    }
+    .chart-card.full { grid-column: 1 / -1; }
+    .chart-head.chart-title {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 12px;
+    }
+    .chart-title h3 { margin: 0; color: var(--navy); font-size: 16px; }
+    .chart-title p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .legend { display: flex; gap: 7px; flex-wrap: wrap; min-width: 0; padding: 0; }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+      max-width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      background: #f8fbff;
+      font-size: 10px;
+      font-weight: 750;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+    .legend-swatch { width: 9px; height: 9px; border-radius: 50%; background: var(--legend-color); }
+    .chart-box { min-height: 300px; }
+    .chart-box svg { height: 300px; }
+    .chart-empty { min-height: 300px; border: 1px dashed var(--border); border-radius: 14px; background: #f8fbff; }
+    .annual-hint {
+      width: fit-content;
+      max-width: 100%;
+      margin-top: 8px;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: #f8fbff;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .history-tools {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 220px auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 18px;
+      padding: 16px;
+    }
+    .table-card { overflow: hidden; }
+    .table-scroll { overflow: auto; }
+    table { min-width: 1010px; }
+    th {
+      padding: 11px 13px;
+      color: var(--muted);
+      background: #f6f9fe;
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+    td { padding: 12px 13px; border-bottom: 1px solid #e8eef7; font-size: 11px; }
+    .event-pill { border: 1px solid var(--border); background: #edf5ff; color: var(--blue); }
+    .table-footer { padding: 13px 16px; border-top: 1px solid var(--border); background: #fbfdff; }
+    .page-btn { border-color: var(--border); border-radius: 10px; color: var(--navy); }
+
+    dialog { border-radius: var(--radius-xl); color: var(--text); box-shadow: 0 25px 70px rgba(7,42,108,.30); }
+    .dialog-head h3 { color: var(--navy); }
+    .toast { color: #fff; background: rgba(7,42,108,.96); }
+
+    @media (max-width: 1180px) {
+      .app.page { grid-template-columns: 224px minmax(0, 1fr); }
+      .site-banner { grid-template-columns: 1fr 1fr; gap: 12px 0; }
+      .operational-banner { grid-template-columns:1fr 1fr; }
+      .banner-action { grid-column:1 / -1; }
+      .general-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .site-fact:nth-child(2) { border-left: 1px solid var(--border); padding-left: 16px; }
+      .site-fact:nth-child(3) { border-left: 0; padding-left: 0; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 980px) {
+      .app.page { display: grid; grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .brand { padding-bottom: 16px; }
+      .nav.menu { display: grid; grid-template-columns: repeat(2, 1fr); }
+      .sidebar-overview { display: grid; grid-template-columns: 150px minmax(0, 1fr); }
+      .sidebar-overview-visual { min-height: 100%; }
+      .main { padding: 18px; }
+      .topbar { position: static; padding: 0; }
+    }
+
+    @media (max-width: 720px) {
+      .main { padding: 14px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      .title-wrap h1 { font-size: 24px; }
+      .top-actions { justify-content: flex-start; }
+      .demo-chip { width: auto; }
+      .sidebar-overview { display: block; }
+      .filter-panel.filters,
+      .kpi-grid,
+      .chart-grid,
+      .custom-dates,
+      .history-tools { grid-template-columns: 1fr; }
+      .filter-row { display: contents; }
+      .site-banner { grid-template-columns: 1fr; }
+      .operational-banner, .general-grid { grid-template-columns:1fr; }
+      .banner-action { grid-column:auto; }
+      .site-fact,
+      .site-fact:nth-child(2),
+      .site-fact:nth-child(3) { padding: 11px 0 0; border-top: 1px solid var(--border); border-left: 0; }
+      .chart-card.full { grid-column: auto; }
+      .chart-head.chart-title { display: block; }
+      .legend { justify-content: flex-start; margin-top: 9px; }
+      .table-footer { align-items: stretch; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app page">
+    <aside class="sidebar" aria-label="Navigation principale">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">BTM</div>
+        <div class="brand-copy"><h1>Vue Client</h1><p>BlueTrust Monitoring</p></div>
+      </div>
+      <div class="nav-title">NAVIGATION</div>
+      <nav class="nav menu" role="tablist" aria-label="Vues du dashboard">
+        <button class="nav-btn" type="button" role="tab" id="tab-dashboard" aria-controls="dashboard-view" aria-selected="true" data-view="dashboard">
+          <span class="nav-icon" aria-hidden="true">▦</span><span>Tableau de bord</span>
+        </button>
+        <button class="nav-btn" type="button" role="tab" id="tab-history" aria-controls="history-view" aria-selected="false" data-view="history">
+          <span class="nav-icon" aria-hidden="true">↺</span><span>Historique</span>
+        </button>
+      </nav>
+      <section class="sidebar-overview" aria-label="Synthèse du site Client">
+        <div class="sidebar-overview-visual"><div class="sidebar-overview-logo" aria-label="Emplacement réservé au logo du client">LOGO</div></div>
+        <div class="sidebar-overview-body">
+          <h3>SYRINXPAN · Site Horizon</h3>
+          <p>Vue dédiée au suivi des équipements, incidents et contrôles annuels du site.</p>
+          <div class="sidebar-overview-meta">
+            <div class="sidebar-mini-stat"><strong id="sidebar-device-count">3</strong><span>E‑PREDICT suivis</span></div>
+            <div class="sidebar-mini-stat"><strong id="sidebar-open-actions">0</strong><span>action ouverte</span></div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="title-wrap">
+          <p class="eyebrow">E‑PREDICT · Vue Client</p>
+          <h1 id="page-title">Dashboard du site</h1>
+          <p class="topbar-subtitle">Suivi des équipements, incidents, interventions et contrôles annuels.</p>
+        </div>
+        <div class="top-actions">
+          <span class="demo-chip">Données de démonstration</span>
+          <button class="btn primary" type="button" id="export-csv">Exporter en CSV</button>
+        </div>
+      </header>
+
+      <section class="operational-banner" id="operational-banner" aria-label="État opérationnel courant">
+        <div class="banner-state"><i class="banner-light" id="site-banner-light"></i><div><strong id="site-banner-title">État du parc E‑PREDICT</strong><span id="site-banner-detail">Calcul en cours…</span></div></div>
+        <div class="banner-state"><i class="banner-light" id="hmi-banner-light"></i><div><strong id="hmi-banner-title">État de la SCAPREDICT</strong><span id="hmi-banner-detail">Calcul en cours…</span></div></div>
+        <button class="btn banner-action" type="button" id="show-history">Afficher l’historique</button>
+      </section>
+
+      <div class="content">
+        <section class="view" id="dashboard-view" role="tabpanel" aria-labelledby="tab-dashboard">
+          <div class="site-banner card">
+            <div>
+              <div class="eyebrow" style="color:#79d8f4">SITE CLIENT</div>
+              <h2>SYRINXPAN · Site Horizon</h2>
+              <p>19 avenue des Entrepreneurs, 95400 · Référence SITE‑SYRINXPAN‑001</p>
+            </div>
+            <div class="site-fact"><span>État actuel</span><strong class="status-inline"><i class="status-dot"></i><span id="site-status">Alerte système</span></strong></div>
+            <div class="site-fact"><span>IHM / SCAPREDICT</span><strong>HMI-C0CE17757F0B</strong></div>
+            <div class="site-fact"><span>Parc déclaré par MQTT</span><strong><span id="device-count-banner">3</span> E‑PREDICT</strong></div>
+          </div>
+
+          <section class="general-info card" aria-labelledby="general-title">
+            <div class="section-head"><div><h2 id="general-title">Informations générales</h2><p>Coordonnées du site et accès à l’assistance.</p></div></div>
+            <div class="general-grid">
+              <div class="general-item"><span>Raison sociale</span><strong>SYRINXPAN</strong></div>
+              <div class="general-item"><span>Nom du site</span><strong>Site Horizon</strong></div>
+              <div class="general-item"><span>Adresse</span><strong>19 avenue des Entrepreneurs, 95400</strong></div>
+              <div class="general-item"><span>Contact du site</span><strong>À renseigner · À renseigner</strong></div>
+              <div class="general-item"><span>Support HDSN</span><strong>sav@hdsn.fr</strong></div>
+              <div class="general-item"><span>Dernier message reçu</span><strong id="last-message">—</strong></div>
+              <div class="general-item"><span>Seuil sans communication</span><strong>60 min · configurable</strong></div>
+              <div class="general-item"><span>Notifications</span><strong>Watchdog BTM configurable · e-mail/SMS à cadrer</strong></div>
+            </div>
+            <div class="support-actions"><button class="btn primary" type="button" id="feedback-button">Ouvrir une demande via Feedback BTM</button><span class="demo-chip">Urgence : coordonnées et hotline à renseigner</span></div>
+          </section>
+
+          <section class="filter-panel card filters" aria-labelledby="filters-title">
+            <h2 class="sr-only" id="filters-title">Filtres globaux</h2>
+            <div class="filter-row">
+              <div class="field">
+                <label for="period-filter">Période</label>
+                <select class="select" id="period-filter">
+                  <option value="day">Jour</option>
+                  <option value="week">Semaine</option>
+                  <option value="month" selected>Mois</option>
+                  <option value="quarter">3 mois</option>
+                  <option value="half">6 mois</option>
+                  <option value="year">Année</option>
+                  <option value="history">Tout l’historique</option>
+                  <option value="custom">Entre deux dates</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="equipment-filter">Type d’équipement <span class="info-tip" tabindex="0" role="img" aria-label="Catégorie de l’équipement surveillé par l’E-PREDICT." title="Catégorie de l’équipement surveillé par l’E-PREDICT.">i</span></label>
+                <select class="select" id="equipment-filter">
+                  <option value="all">Tous les équipements</option>
+                  <option value="Batteries">Batteries</option>
+                  <option value="TGBT">TGBT</option>
+                  <option value="Onduleurs">Onduleurs</option>
+                  <option value="Armoire process">Armoire process</option>
+                  <option value="Contrôle-commande">Contrôle-commande</option>
+                  <option value="Autre">Autre</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="incident-filter">Type d’incident <span class="info-tip" tabindex="0" role="img" aria-label="Événements reçus pendant la période sélectionnée." title="Événements reçus pendant la période sélectionnée.">i</span></label>
+                <select class="select" id="incident-filter">
+                  <option value="all">Tous les incidents</option>
+                  <option value="alarm">Alarmes</option>
+                  <option value="alert">Alertes</option>
+                  <option value="disconnection">Déconnexions</option>
+                  <option value="system">Événements système</option>
+                </select>
+              </div>
+              <button class="btn btn-ghost" type="button" id="reset-filters">↻ Réinitialiser</button>
+            </div>
+            <div class="custom-dates" id="custom-dates" hidden>
+              <div class="field"><label for="date-from">Du</label><input class="input" id="date-from" type="date" value="2026-09-01" max="2026-09-12"></div>
+              <div class="field"><label for="date-to">Au</label><input class="input" id="date-to" type="date" value="2026-09-12" max="2026-09-12"></div>
+            </div>
+            <p class="filter-summary" id="filter-summary" aria-live="polite"></p>
+          </section>
+
+          <section aria-labelledby="kpi-title">
+            <div class="section-head"><div><div class="eyebrow">SYNTHÈSE</div><h2 id="kpi-title">Indicateurs clés</h2></div></div>
+            <div class="kpi-grid">
+              <article class="kpi-card card next-control" id="annual-kpi-card">
+                <div class="kpi-label">Prochain contrôle annuel</div>
+                <div class="kpi-value" id="kpi-control-date">—</div>
+                <p class="kpi-note" id="kpi-control-note">—</p>
+                <span class="kpi-badge" id="kpi-control-badge">—</span>
+              </article>
+              <article class="kpi-card card delay">
+                <div class="kpi-label">Délai moyen d’intervention</div>
+                <div class="kpi-value" id="kpi-delay">—</div>
+                <p class="kpi-note" id="kpi-delay-note">Objectif : 15 min</p>
+              </article>
+              <article class="kpi-card card incidents">
+                <div class="kpi-label">Nombre d’incidents</div>
+                <div class="kpi-value" id="kpi-incidents">—</div>
+                <p class="kpi-note" id="kpi-incidents-note">—</p>
+              </article>
+              <article class="kpi-card card operational">
+                <div class="kpi-label">Taux d’E‑PREDICT opérationnels</div>
+                <div class="kpi-value" id="kpi-operational">—</div>
+                <p class="kpi-note" id="kpi-operational-note">—</p>
+              </article>
+            </div>
+          </section>
+
+          <section aria-labelledby="charts-title">
+            <div class="section-head"><div><div class="eyebrow">ÉVOLUTION</div><h2 id="charts-title">Analyse des KPI</h2></div><p id="data-cutoff">Trames réelles jusqu’au 12/09/2026 à 00:05:41 UTC</p></div>
+            <div class="chart-grid">
+              <article class="chart-card card">
+                <div class="chart-head chart-title">
+                  <div><h3>KPI conformité</h3><p>Taux d’E‑PREDICT opérationnels sur la période</p></div>
+                  <select class="chart-period" id="period-compliance" aria-label="Période du graphique de conformité"></select>
+                  <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--legend-color:#17875d"></i>Taux opérationnel</span><span class="legend-item"><i class="legend-swatch" style="--legend-color:#e77724"></i>Contrôle annuel</span></div>
+                </div>
+                <div class="chart-box" id="compliance-chart" aria-live="polite"></div>
+                <div class="annual-hint" id="annual-marker-info">Le repère indique le prochain contrôle du parc filtré.</div>
+              </article>
+              <article class="chart-card card">
+                <div class="chart-head chart-title">
+                  <div><h3>KPI Délai d’intervention</h3><p>Délai entre la première alarme et son acquittement sur l’IHM</p></div>
+                  <select class="chart-period" id="period-delay" aria-label="Période du graphique de délai"></select>
+                  <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--legend-color:#00a4d6"></i>Délai moyen</span><span class="legend-item"><i class="legend-swatch" style="--legend-color:#d9364f"></i>Objectif 15 min</span></div>
+                </div>
+                <div class="chart-box" id="delay-chart" aria-live="polite"></div>
+              </article>
+              <article class="chart-card card full">
+                <div class="chart-head chart-title">
+                  <div><h3>Nombre d’incidents par période</h3><p>Alarmes, alertes, déconnexions et événements système</p></div>
+                  <select class="chart-period" id="period-incidents" aria-label="Période du graphique des incidents"></select>
+                  <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--legend-color:#0067b9"></i>Incidents</span></div>
+                </div>
+                <div class="chart-box" id="incident-chart" aria-live="polite"></div>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="history-view" role="tabpanel" aria-labelledby="tab-history" hidden>
+          <div class="section-head">
+            <div><div class="eyebrow">TRAMES REÇUES</div><h2>Historique SCAPREDICT</h2><p>L’ensemble des informations reçues pour le site, selon les filtres globaux actifs.</p></div>
+          </div>
+          <div class="history-tools card">
+            <div class="field"><label for="history-search">Rechercher</label><input class="input" id="history-search" type="search" placeholder="E-PREDICT, message, événement…"></div>
+            <div class="field">
+              <label for="history-event-filter">Catégorie de trame</label>
+              <select class="select" id="history-event-filter">
+                <option value="all">Toutes les trames</option>
+                <option value="incidents">Incidents</option>
+                <option value="ack">Acquittements</option>
+                <option value="normal">Retours à la normale</option>
+                <option value="communication">Communication et configuration</option>
+                <option value="inspection">Contrôles annuels</option>
+              </select>
+            </div>
+            <button class="btn" type="button" id="reset-history">↻ Réinitialiser l’historique</button>
+          </div>
+          <div class="table-card card">
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Date et heure</th><th>E‑PREDICT</th><th>Type d’équipement</th><th>Emplacement</th><th>Événement</th><th>Message / état</th><th>Détail</th></tr></thead>
+                <tbody id="history-body"></tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <span class="muted" id="history-count">—</span>
+              <div class="pagination">
+                <button class="page-btn" type="button" id="page-prev" aria-label="Page précédente">‹</button>
+                <span id="page-indicator">Page 1 / 1</span>
+                <button class="page-btn" type="button" id="page-next" aria-label="Page suivante">›</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="event-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-head"><h3 id="dialog-title">Détail de la trame MQTT</h3><button class="close-btn" type="button" id="dialog-close" aria-label="Fermer">×</button></div>
+    <div class="dialog-body"><pre id="dialog-json"></pre></div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    const DEMO_NOW = new Date("2026-09-12T00:06:00Z");
+    const DAY = 86400000;
+    const SITE = {
+      id: "SITE-SYRINXPAN-001",
+      name: "Site Horizon",
+      company: "SYRINXPAN",
+      city: "Gonesse",
+      address: "19 avenue des Entrepreneurs, 95400",
+      hmiId: "HMI-C0CE17757F0B",
+      contactEmail: "À renseigner",
+      contactPhone: "À renseigner",
+      supportEmail: "sav@hdsn.fr",
+      communicationTimeoutMinutes: 60,
+      warningThresholdHours: 24,
+      alarmThresholdHours: 1
+    };
+
+    const EQUIPMENT_PROFILES = [
+      [1, "Batteries", "salle de test", "2026-09-10T18:21:08Z", "DI0"],
+      [256, "TGBT", "Test R", "2026-09-11T19:07:56Z", "DI10"],
+      [512, "Onduleurs", "Test J", "2026-09-11T19:07:56Z", "DI13"]
+    ];
+
+    const DEVICES = EQUIPMENT_PROFILES.map((profile, index) => {
+      const number = profile[0];
+      const next = new Date(profile[3]);
+      const last = new Date(next.getTime());
+      last.setUTCFullYear(last.getUTCFullYear() - 1);
+      return {
+        id: `EP-${number}`,
+        name: `${SITE.hmiId}_EP${number}`,
+        shortName: `EP${number}`,
+        equipmentType: profile[1],
+        location: profile[2],
+        input: profile[4],
+        backplaneNumber: "1",
+        moduleNumber: "0",
+        serialNumber: `TRAME-HDSN-${number}`,
+        version: "V3",
+        lastInspection: last,
+        nextInspection: next
+      };
+    });
+
+    const INCIDENT_LABELS = {
+      alarm: "Alarme",
+      alert: "Alerte",
+      disconnection: "Déconnexion",
+      system: "Événement système"
+    };
+
+    const deviceByName = new Map(DEVICES.map(device => [device.name, device]));
+    const makeEvent = (eventID, payload, incidentKind = null, message = '') => {
+      const payloadName = payload.name || (payload.devices?.length === 1 ? payload.devices[0].name : null);
+      const device = payloadName ? deviceByName.get(payloadName) : null;
+      return {
+        eventID,
+        topic:`BTM/${SITE.hmiId}/data`,
+        timestampUtc:new Date(payload.dateUtc.replace(' ', 'T') + 'Z').toISOString(),
+        hmiId:SITE.hmiId,
+        name:payloadName || SITE.hmiId,
+        deviceId:device?.id || null,
+        eventType:payload.eventType,
+        incidentKind,
+        message,
+        systemEventType:payload.systemEventType,
+        systemState:payload.systemState,
+        rawPayload:payload,
+        dataOrigin:'Trame réelle fournie par HDSN'
+      };
+    };
+    const ep1 = {name:`${SITE.hmiId}_EP1`,backplaneNumber:'1',moduleNumber:'0',input:'DI0',location:'salle de test'};
+    const ep256 = {name:`${SITE.hmiId}_EP256`,backplaneNumber:'1',moduleNumber:'0',input:'DI10',location:'Test R'};
+    const ep512 = {name:`${SITE.hmiId}_EP512`,backplaneNumber:'1',moduleNumber:'0',input:'DI13',location:'Test J'};
+    const events = [
+      makeEvent(346,{eventType:'Alarm',...ep1,dateUtc:'2026-09-11 18:39:16'},'alarm','Alarme détectée'),
+      makeEvent(347,{eventType:'Acknowledge',...ep1,lastSurveyResult:{ledColor:'Red',Q1_result:true,Q2_result:true,Q3_result:true,issue_result:'4',issue_detail:'disjoncteur en defaut'},operatorSurvey:'ÉLECTRICIEN',dateUtc:'2026-09-11 18:48:58'},'alarm','Alarme acquittée sur l’IHM'),
+      makeEvent(348,{eventType:'KeepAlive_ping',dateUtc:'2026-09-11 18:52:41'},null,'Communication périodique reçue'),
+      makeEvent(349,{eventType:'Annual_inspection_test',dateUtc:'2026-09-11 19:07:46',devices:[{...ep256,nextPeriodicTestDateUtc:'2026-09-11 19:07:56'},{...ep512,nextPeriodicTestDateUtc:'2026-09-11 19:07:56'}]},null,'Test annuel réussi'),
+      makeEvent(350,{eventType:'Periodic_ping_Alarm',dateUtc:'2026-09-11 19:14:17',devices:[{...ep1,state:'Alarm',isACK:true,nextPeriodicTestDateUtc:'2026-09-10 18:21:08'}]},'alarm','Alarme toujours présente'),
+      makeEvent(351,{eventType:'Return_to_normal',...ep1,dateUtc:'2026-09-11 19:24:44'},'alarm','Retour à la normale'),
+      makeEvent(352,{eventType:'Disconnection',...ep1,dateUtc:'2026-09-11 19:32:08'},'disconnection','E‑PREDICT déconnecté'),
+      makeEvent(353,{eventType:'System',systemEventType:'HMI_Start',systemState:1,message:'SCAPREDICT a démarré',dateUtc:'2026-09-11 19:36:47'},null,'SCAPREDICT a démarré'),
+      makeEvent(356,{eventType:'Periodic_ping_Disconnection',dateUtc:'2026-09-11 20:23:37',devices:[{...ep1,state:'Disconnection',isACK:true,nextPeriodicTestDateUtc:'2026-09-10 18:21:08'}]},'disconnection','Déconnexion toujours présente'),
+      makeEvent(360,{eventType:'Alert',...ep1,dateUtc:'2026-09-11 20:34:19'},'alert','Alerte détectée'),
+      makeEvent(363,{eventType:'Periodic_ping_Alert',dateUtc:'2026-09-11 21:27:10',devices:[{...ep1,state:'Alert',isACK:false,nextPeriodicTestDateUtc:'2026-09-10 18:21:08'}]},'alert','Alerte toujours présente'),
+      makeEvent(364,{eventType:'Acknowledge',...ep1,lastSurveyResult:{ledColor:'ORANGE',Q1_result:false,Q2_result:false,Q3_result:false,issue_result:'',issue_detail:''},operatorSurvey:'OPÉRATEUR DE MAINTENANCE',dateUtc:'2026-09-11 21:29:55'},'alert','Alerte acquittée sur l’IHM'),
+      makeEvent(367,{eventType:'Periodic_Configuration',companyName:'Test',country:'France',name:'gtrr34',lastName:'',emailContact:'ree34rvvi',telephoneContact:'',siteName:'',siteAddress:'19 avenue des Entrepreneurs',postCode:'95400',emailSupport:'sav@hdsn.fr',languageSCAPREDICT:'Français',ipSCAPREDICTServer:'10.10.10.1',numberOfEPREDICT:'3',devices:[{...ep256,state:'OK',isACK:true,isInhibited:false,nextPeriodicTestDateUtc:'2026-09-11 19:07:56'},{...ep512,state:'OK',isACK:true,isInhibited:false,nextPeriodicTestDateUtc:'2026-09-11 19:07:56'},{...ep1,state:'OK',isACK:true,isInhibited:false,nextPeriodicTestDateUtc:'2026-09-10 18:21:08'}],dateUtc:'2026-09-12 00:00:02'},null,'Configuration périodique : 3 E‑PREDICT, tous en état OK'),
+      makeEvent(369,{eventType:'System',systemEventType:'HW_Error',systemState:0,message:"Erreur système:Fond de panier d'entrée 192.168.0.6 non connecté",dateUtc:'2026-09-12 00:02:40'},'system',"Erreur matérielle de la SCAPREDICT"),
+      makeEvent(370,{eventType:'System',systemEventType:'HW_Recovery',systemState:1,message:'Système restauré : toutes les erreurs ont été corrigées.',dateUtc:'2026-09-12 00:05:41'},'system','SCAPREDICT restaurée')
+    ];
+    const incidents = [
+      {id:'INC-346',deviceId:'EP-1',kind:'alarm',open:new Date('2026-09-11T18:39:16Z'),acknowledge:new Date('2026-09-11T18:48:58Z'),close:new Date('2026-09-11T19:24:44Z'),message:'Alarme EP1'},
+      {id:'INC-352',deviceId:'EP-1',kind:'disconnection',open:new Date('2026-09-11T19:32:08Z'),acknowledge:null,close:null,currentActive:false,reconciledAt:new Date('2026-09-12T00:00:02Z'),message:'Déconnexion EP1 — état courant régularisé par Periodic_Configuration ; clôture métier en attente de confirmation'},
+      {id:'INC-360',deviceId:'EP-1',kind:'alert',open:new Date('2026-09-11T20:34:19Z'),acknowledge:new Date('2026-09-11T21:29:55Z'),close:null,currentActive:false,reconciledAt:new Date('2026-09-12T00:00:02Z'),message:'Alerte EP1 — état courant régularisé par Periodic_Configuration ; Return_to_normal absent'},
+      {id:'INC-369',deviceId:null,kind:'system',open:new Date('2026-09-12T00:02:40Z'),acknowledge:null,close:new Date('2026-09-12T00:05:41Z'),message:'HW_Error fermé par HW_Recovery'}
+    ];
+
+    const state = {
+      view: "dashboard",
+      period: "month",
+      equipment: "all",
+      incident: "all",
+      customFrom: "2026-09-01",
+      customTo: "2026-09-12",
+      chartPeriods: { compliance:null, delay:null, incidents:null },
+      historySearch: "",
+      historyCategory: "all",
+      historyPage: 1,
+      pageSize: 14
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => [...document.querySelectorAll(selector)];
+    const byId = (id) => document.getElementById(id);
+    const deviceMap = new Map(DEVICES.map(device => [device.id, device]));
+
+    function dateOnly(date) { return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(new Date(date)); }
+    function dateTime(date) { return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }).format(new Date(date)).replace(",", ""); }
+    function shortDate(date) { return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", timeZone: "UTC" }).format(new Date(date)); }
+    function startOfDay(date) { return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())); }
+    function endOfDay(date) { return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999)); }
+    function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+    function esc(value) { return String(value ?? "").replace(/[&<>"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[char])); }
+
+    function getRangeForPeriod(period) {
+      const y = DEMO_NOW.getUTCFullYear();
+      const m = DEMO_NOW.getUTCMonth();
+      const d = DEMO_NOW.getUTCDate();
+      if (period === "day") return { start: startOfDay(DEMO_NOW), end: endOfDay(DEMO_NOW), label: "Jour" };
+      if (period === "week") {
+        const weekday = (DEMO_NOW.getUTCDay() + 6) % 7;
+        const start = new Date(Date.UTC(y, m, d - weekday));
+        return { start, end: endOfDay(new Date(start.getTime() + 6 * DAY)), label: "Semaine" };
+      }
+      if (period === "month") return { start: new Date(Date.UTC(y, m, 1)), end: endOfDay(new Date(Date.UTC(y, m + 1, 0))), label: "Mois" };
+      if (period === "quarter") return { start: new Date(Date.UTC(y, m - 2, 1)), end: endOfDay(new Date(Date.UTC(y, m + 1, 0))), label: "3 mois" };
+      if (period === "half") return { start: new Date(Date.UTC(y, m - 5, 1)), end: endOfDay(new Date(Date.UTC(y, m + 1, 0))), label: "6 mois" };
+      if (period === "year") return { start: new Date(Date.UTC(y, 0, 1)), end: endOfDay(new Date(Date.UTC(y, 11, 31))), label: "Année" };
+      if (period === "history") return { start: new Date(events[0].timestampUtc), end: endOfDay(DEMO_NOW), label: "Tout l’historique" };
+      const from = new Date(`${state.customFrom}T00:00:00Z`);
+      const to = new Date(`${state.customTo}T23:59:59.999Z`);
+      return { start: from, end: to, label: "Entre deux dates" };
+    }
+    function getPeriodRange() { return getRangeForPeriod(state.period); }
+
+    function baseDevices() {
+      return state.equipment === "all" ? [...DEVICES] : DEVICES.filter(device => device.equipmentType === state.equipment);
+    }
+
+    function openingIncidents(range, devices = baseDevices()) {
+      const ids = new Set(devices.map(device => device.id));
+      return incidents.filter(incident => {
+        const inDate = incident.open >= range.start && incident.open <= range.end;
+        const inEquipment = incident.deviceId === null ? state.equipment === "all" : ids.has(incident.deviceId);
+        const inType = state.incident === "all" || incident.kind === state.incident;
+        return inDate && inEquipment && inType;
+      });
+    }
+
+    function filteredDevices(range) {
+      const devices = baseDevices();
+      if (state.incident === "all") return devices;
+      if (state.incident === "system") {
+        const hasSystem = incidents.some(incident => incident.kind === "system" && incident.open >= range.start && incident.open <= range.end);
+        return hasSystem ? devices : [];
+      }
+      const ids = new Set(incidents.filter(incident => incident.kind === state.incident && incident.open >= range.start && incident.open <= range.end).map(incident => incident.deviceId));
+      return devices.filter(device => ids.has(device.id));
+    }
+
+    function eventMatchesGlobal(event, range, devices) {
+      const time = new Date(event.timestampUtc);
+      if (time < range.start || time > range.end) return false;
+      const ids = new Set(devices.map(device => device.id));
+      if (event.deviceId && !ids.has(event.deviceId)) return false;
+      if (!event.deviceId && state.equipment !== "all") return false;
+      if (state.incident === "all") return true;
+      return event.incidentKind === state.incident;
+    }
+
+    function operationalStateAt(device, at) {
+      let productIssue = false;
+      let disconnected = false;
+      let hmiIssue = false;
+      events.forEach(event => {
+        const time = new Date(event.timestampUtc);
+        if (time > at) return;
+        if (event.eventType === "System" && event.systemEventType === "HW_Error" && event.systemState === 0) hmiIssue = true;
+        if (event.eventType === "System" && event.systemEventType === "HW_Recovery" && event.systemState === 1) hmiIssue = false;
+        if (event.eventType === "Periodic_Configuration") {
+          const snapshot = (event.rawPayload.devices || []).find(item => item.name === device.name);
+          if (snapshot?.state === "OK") { productIssue = false; disconnected = false; }
+          if (snapshot?.state === "Alert") productIssue = true;
+          if (snapshot?.state === "Disconnection") disconnected = true;
+        }
+        if (event.deviceId === device.id) {
+          if (event.eventType === "Alert") productIssue = true;
+          if (event.eventType === "Disconnection") disconnected = true;
+          if (event.eventType === "Return_to_normal") { productIssue = false; disconnected = false; }
+        }
+        (event.rawPayload.devices || []).forEach(item => {
+          if (item.name !== device.name) return;
+          if (event.eventType === "Periodic_ping_Alert") productIssue = true;
+          if (event.eventType === "Periodic_ping_Disconnection") disconnected = true;
+        });
+      });
+      return !(productIssue || disconnected || hmiIssue);
+    }
+
+    function hmiStateAt(at) {
+      const received = events.filter(event => new Date(event.timestampUtc) <= at).sort((a,b) => new Date(b.timestampUtc) - new Date(a.timestampUtc));
+      const last = received[0] || null;
+      let hardwareError = false;
+      received.slice().reverse().forEach(event => {
+        if (event.eventType !== "System") return;
+        if (event.systemEventType === "HW_Error" && event.systemState === 0) hardwareError = true;
+        if (event.systemEventType === "HW_Recovery" && event.systemState === 1) hardwareError = false;
+      });
+      const silenceMinutes = last ? (at - new Date(last.timestampUtc)) / 60000 : Infinity;
+      if (silenceMinutes > SITE.communicationTimeoutMinutes) return {color:'red', label:'SCAPREDICT non communicante', detail:`Aucune trame depuis ${Math.floor(silenceMinutes)} min`};
+      if (hardwareError) return {color:'orange', label:'Alerte système SCAPREDICT', detail:'HW_Error actif — attente de HW_Recovery'};
+      return {color:'green', label:'SCAPREDICT fonctionnelle', detail:last ? `Dernier message reçu il y a ${Math.max(0, Math.round(silenceMinutes))} min` : 'Aucun message reçu'};
+    }
+
+    function renderOperationalBanner() {
+      const operational = DEVICES.filter(device => operationalStateAt(device, DEMO_NOW));
+      const hmi = hmiStateAt(DEMO_NOW);
+      const activeAlarms = incidents.filter(item => item.kind === 'alarm' && item.currentActive !== false && item.open <= DEMO_NOW && (!item.close || item.close > DEMO_NOW));
+      const nonOperational = DEVICES.filter(device => !operationalStateAt(device, DEMO_NOW));
+      let site = {color:'green', label:`${operational.length} E‑PREDICT opérationnels`, detail:`Parc déclaré : ${DEVICES.length} E‑PREDICT`};
+      const oldestBlocking = incidents.filter(item => ['alert','disconnection'].includes(item.kind) && item.currentActive !== false && (!item.close || item.close > DEMO_NOW)).sort((a,b) => a.open - b.open)[0];
+      const oldestAlarm = activeAlarms.slice().sort((a,b) => a.open - b.open)[0];
+      const blockingHours = oldestBlocking ? (DEMO_NOW - oldestBlocking.open) / 3600000 : 0;
+      const alarmHours = oldestAlarm ? (DEMO_NOW - oldestAlarm.open) / 3600000 : 0;
+      if (nonOperational.length && blockingHours >= SITE.warningThresholdHours) site = {color:'orange', label:`${nonOperational.length} E‑PREDICT non opérationnel${nonOperational.length > 1 ? 's' : ''}`, detail:`${nonOperational.map(device => device.shortName).join(', ')} · depuis ${dateTime(oldestBlocking.open)} UTC`};
+      else if (nonOperational.length) site = {color:'', label:'Événement non opérationnel sous le seuil', detail:`Seuil d’affichage orange : ${SITE.warningThresholdHours} h · règle à confirmer`};
+      if (activeAlarms.length && alarmHours >= SITE.alarmThresholdHours) site = {color:'red', label:`${activeAlarms.length} E‑PREDICT en alarme`, detail:`${activeAlarms.map(item => deviceMap.get(item.deviceId)?.shortName || item.deviceId).join(', ')} · depuis ${dateTime(oldestAlarm.open)} UTC`};
+      else if (activeAlarms.length) site = {color:'', label:'Alarme sous le seuil configuré', detail:`Seuil d’affichage rouge : ${SITE.alarmThresholdHours} h · règle à confirmer`};
+      byId('site-banner-light').className = `banner-light ${site.color}`;
+      byId('site-banner-title').textContent = site.label;
+      byId('site-banner-detail').textContent = site.detail;
+      byId('hmi-banner-light').className = `banner-light ${hmi.color}`;
+      byId('hmi-banner-title').textContent = hmi.label;
+      byId('hmi-banner-detail').textContent = `${hmi.detail} · seuil ${SITE.communicationTimeoutMinutes} min`;
+      const annualDue = DEVICES.some(device => device.nextInspection <= DEMO_NOW);
+      const siteStatus = activeAlarms.length ? 'Alarme en cours' : nonOperational.length || hmi.color !== 'green' ? 'Alerte système' : annualDue ? 'Contrôle annuel' : 'Conforme';
+      byId('site-status').textContent = siteStatus;
+      const statusDot = document.querySelector('.status-dot');
+      if (statusDot) statusDot.style.background = siteStatus === 'Conforme' ? '#26ad61' : siteStatus === 'Alarme en cours' ? '#a61f2b' : '#f59e0b';
+      const last = events.slice().sort((a,b) => new Date(b.timestampUtc) - new Date(a.timestampUtc))[0];
+      byId('last-message').textContent = last ? `${dateTime(last.timestampUtc)} UTC · ${last.eventType}` : 'Aucun message';
+      byId('sidebar-device-count').textContent = DEVICES.length;
+      byId('sidebar-open-actions').textContent = activeAlarms.length + nonOperational.length + (hmi.color === 'green' ? 0 : 1);
+    }
+
+    function nextInspection(devices) {
+      return devices.reduce((closest, device) => !closest || device.nextInspection < closest.nextInspection ? device : closest, null);
+    }
+
+    function resolvedAlarms(range, devices) {
+      const ids = new Set(devices.map(device => device.id));
+      return incidents.filter(incident => incident.kind === "alarm" && incident.open >= range.start && incident.open <= range.end && ids.has(incident.deviceId) && incident.acknowledge);
+    }
+
+    function delayMinutes(incident) { return (incident.acknowledge - incident.open) / 60000; }
+
+    function periodLabel(range) { return `${range.label} · du ${dateOnly(range.start)} au ${dateOnly(range.end)}`; }
+
+    function renderSummary() {
+      const range = getPeriodRange();
+      const devices = filteredDevices(range);
+      const snapshotAt = new Date(Math.min(range.end.getTime(), DEMO_NOW.getTime()));
+      const operational = devices.filter(device => operationalStateAt(device, snapshotAt)).length;
+      const rate = devices.length ? operational / devices.length * 100 : null;
+      const incidentList = openingIncidents(range, devices);
+      const alarms = state.incident === "all" || state.incident === "alarm" ? resolvedAlarms(range, devices) : [];
+      const avgDelay = alarms.length ? alarms.reduce((sum, incident) => sum + delayMinutes(incident), 0) / alarms.length : null;
+      // Le contrôle annuel est une donnée de planification par E-PREDICT :
+      // la période et le type d'incident ne modifient pas l'échéance affichée.
+      // Seul le filtre d'équipement peut réduire le parc concerné.
+      const control = nextInspection(baseDevices());
+
+      byId("device-count-banner").textContent = DEVICES.length;
+      byId("kpi-operational").textContent = rate === null ? "—" : `${rate.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
+      byId("kpi-operational-note").textContent = devices.length ? `${operational} opérationnels sur ${devices.length} E‑PREDICT éligibles` : "Aucun E‑PREDICT pour ces filtres";
+      byId("kpi-delay").textContent = avgDelay === null ? "—" : `${avgDelay.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} min`;
+      byId("kpi-delay-note").textContent = alarms.length ? `${alarms.length} alarme${alarms.length > 1 ? "s" : ""} acquittée${alarms.length > 1 ? "s" : ""} · objectif 15 min` : "Aucune alarme acquittée dans la sélection";
+      byId("kpi-incidents").textContent = incidentList.length.toLocaleString("fr-FR");
+      byId("kpi-incidents-note").textContent = incidentList.length ? `${devices.length} E‑PREDICT dans le périmètre filtré` : "Aucun incident dans la sélection";
+
+      if (control) {
+        const days = Math.ceil((control.nextInspection - DEMO_NOW) / DAY);
+        byId("kpi-control-date").textContent = dateOnly(control.nextInspection);
+        byId("kpi-control-note").innerHTML = `<span class="kpi-detail">E‑PREDICT : ${esc(control.shortName)}</span><span class="kpi-detail">Type d’équipement : ${esc(control.equipmentType)}</span>`;
+        byId("kpi-control-note").title = `Emplacement : ${control.location}`;
+        byId("kpi-control-badge").textContent = days < 0 ? `En retard de ${Math.abs(days)} j` : days === 0 ? "À réaliser aujourd’hui" : `Dans ${days} jours`;
+      } else {
+        byId("kpi-control-date").textContent = "—";
+        byId("kpi-control-note").textContent = "Aucun contrôle pour ces filtres";
+        byId("kpi-control-badge").textContent = "Non applicable";
+      }
+
+      const equipmentLabel = state.equipment === "all" ? "Tous les équipements" : state.equipment;
+      const incidentLabel = byId("incident-filter").selectedOptions[0].textContent;
+      byId("filter-summary").textContent = `${periodLabel(range)} · ${equipmentLabel} · ${incidentLabel} · ${devices.length} E‑PREDICT`;
+      renderCharts(range, devices, control);
+    }
+
+    function makeBuckets(range) {
+      const visibleEnd = new Date(Math.min(range.end.getTime(), DEMO_NOW.getTime()));
+      const durationDays = Math.max(1, Math.ceil((visibleEnd - range.start) / DAY));
+      let stepDays = 1;
+      if (durationDays > 250) stepDays = 30;
+      else if (durationDays > 120) stepDays = 14;
+      else if (durationDays > 55) stepDays = 7;
+      else if (durationDays > 20) stepDays = 3;
+      const buckets = [];
+      let cursor = new Date(range.start);
+      while (cursor <= visibleEnd) {
+        const end = new Date(Math.min(cursor.getTime() + stepDays * DAY - 1, visibleEnd.getTime()));
+        buckets.push({ start: new Date(cursor), end, label: stepDays >= 14 ? new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit", timeZone: "UTC" }).format(cursor) : shortDate(cursor) });
+        cursor = new Date(cursor.getTime() + stepDays * DAY);
+      }
+      return buckets.length ? buckets : [{ start: new Date(range.start), end: visibleEnd, label: shortDate(range.start) }];
+    }
+
+    function svgEl(name, attrs = {}) {
+      const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+      Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+      return node;
+    }
+
+    function chartScaffold(container, yMin, yMax, yTicks, ariaLabel) {
+      container.innerHTML = "";
+      const width = 760, height = 300;
+      const margin = { top: 26, right: 24, bottom: 42, left: 52 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+      const svg = svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": ariaLabel, preserveAspectRatio: "none" });
+      yTicks.forEach(value => {
+        const y = margin.top + innerH - ((value - yMin) / (yMax - yMin)) * innerH;
+        svg.appendChild(svgEl("line", { x1: margin.left, x2: width - margin.right, y1: y, y2: y, stroke: "#e5eaf2", "stroke-width": 1 }));
+        const label = svgEl("text", { x: margin.left - 9, y: y + 4, "text-anchor": "end", fill: "#73809a", "font-size": 10 });
+        label.textContent = value;
+        svg.appendChild(label);
+      });
+      svg.appendChild(svgEl("line", { x1: margin.left, x2: width - margin.right, y1: height - margin.bottom, y2: height - margin.bottom, stroke: "#cfd7e5" }));
+      container.appendChild(svg);
+      return { svg, width, height, margin, innerW, innerH, x: ratio => margin.left + ratio * innerW, y: value => margin.top + innerH - ((value - yMin) / (yMax - yMin)) * innerH };
+    }
+
+    function xRatioForDate(date, range) {
+      return clamp((new Date(date).getTime() - range.start.getTime()) / Math.max(1, range.end.getTime() - range.start.getTime()), 0, 1);
+    }
+
+    function addXAxis(chart, buckets, range) {
+      const maxLabels = window.innerWidth < 560 ? 4 : 7;
+      const every = Math.max(1, Math.ceil(buckets.length / maxLabels));
+      buckets.forEach((bucket, index) => {
+        if (index % every !== 0 && index !== buckets.length - 1) return;
+        const ratio = xRatioForDate(bucket.start, range);
+        const label = svgEl("text", { x: chart.x(ratio), y: chart.height - 14, "text-anchor": "middle", fill: "#73809a", "font-size": 10 });
+        label.textContent = bucket.label;
+        chart.svg.appendChild(label);
+      });
+      const lastBucketEnd = buckets[buckets.length - 1].end;
+      if (range.end.getTime() - lastBucketEnd.getTime() > 2 * DAY) {
+        const endLabel = svgEl("text", { x: chart.x(1), y: chart.height - 14, "text-anchor": "end", fill: "#9aa5b8", "font-size": 10 });
+        endLabel.textContent = shortDate(range.end);
+        chart.svg.appendChild(endLabel);
+      }
+    }
+
+    function showChartEmpty(container, title, detail) {
+      container.innerHTML = `<div class="chart-empty"><div><strong>${esc(title)}</strong><span>${esc(detail)}</span></div></div>`;
+    }
+
+    function renderLineChart(container, buckets, values, options) {
+      const numeric = values.filter(value => value !== null && Number.isFinite(value));
+      if (!numeric.length) { showChartEmpty(container, options.emptyTitle, options.emptyDetail); return; }
+      const chart = chartScaffold(container, options.yMin, options.yMax, options.yTicks, options.ariaLabel);
+      addXAxis(chart, buckets, options.range);
+      const segments = [];
+      let current = [];
+      values.forEach((value, index) => {
+        if (value === null || !Number.isFinite(value)) { if (current.length) segments.push(current); current = []; return; }
+        const ratio = xRatioForDate(buckets[index].end, options.range);
+        current.push([chart.x(ratio), chart.y(value), index, value]);
+      });
+      if (current.length) segments.push(current);
+
+      if (options.reference !== undefined) {
+        const y = chart.y(options.reference);
+        chart.svg.appendChild(svgEl("line", { x1: chart.margin.left, x2: chart.width - chart.margin.right, y1: y, y2: y, stroke: options.referenceColor || "#d9364f", "stroke-width": 2, "stroke-dasharray": "7 6" }));
+      }
+
+      segments.forEach(segment => {
+        const path = svgEl("path", { d: segment.map((point, index) => `${index ? "L" : "M"}${point[0]},${point[1]}`).join(" "), fill: "none", stroke: options.color, "stroke-width": 3, "stroke-linecap": "round", "stroke-linejoin": "round" });
+        chart.svg.appendChild(path);
+        segment.forEach(point => {
+          const circle = svgEl("circle", { cx: point[0], cy: point[1], r: 3.5, fill: "#fff", stroke: options.color, "stroke-width": 2 });
+          const title = svgEl("title");
+          title.textContent = `${buckets[point[2]].label} : ${point[3].toLocaleString("fr-FR", { maximumFractionDigits: 1 })}${options.unit}`;
+          circle.appendChild(title);
+          chart.svg.appendChild(circle);
+        });
+      });
+
+      if (options.annotation) {
+        const rangeStart = options.annotation.range.start.getTime();
+        const rangeEnd = options.annotation.range.end.getTime();
+        const annotationTime = options.annotation.date.getTime();
+        if (annotationTime >= rangeStart && annotationTime <= rangeEnd) {
+          const ratio = (annotationTime - rangeStart) / Math.max(1, rangeEnd - rangeStart);
+          const x = chart.x(ratio);
+          const group = svgEl("g");
+          const title = svgEl("title");
+          title.textContent = options.annotation.tooltip;
+          group.appendChild(title);
+          group.appendChild(svgEl("line", { x1: x, x2: x, y1: chart.margin.top, y2: chart.height - chart.margin.bottom, stroke: "#e77724", "stroke-width": 2, "stroke-dasharray": "5 4" }));
+          const labelWidth = 103;
+          const labelX = clamp(x - labelWidth / 2, chart.margin.left, chart.width - chart.margin.right - labelWidth);
+          group.appendChild(svgEl("rect", { x: labelX, y: 4, width: labelWidth, height: 20, rx: 6, fill: "#e77724" }));
+          const textNode = svgEl("text", { x: labelX + labelWidth / 2, y: 18, "text-anchor": "middle", fill: "#fff", "font-size": 10, "font-weight": 700 });
+          textNode.textContent = options.annotation.label;
+          group.appendChild(textNode);
+          chart.svg.appendChild(group);
+        }
+      }
+    }
+
+    function renderBarChart(container, buckets, values, range) {
+      const max = Math.max(1, ...values);
+      const yMax = Math.max(4, Math.ceil(max / 2) * 2);
+      const chart = chartScaffold(container, 0, yMax, [0, Math.round(yMax / 2), yMax], "Nombre d’incidents par période");
+      addXAxis(chart, buckets, range);
+      const stepRatio = buckets.length > 1 ? xRatioForDate(buckets[1].start, range) - xRatioForDate(buckets[0].start, range) : Math.min(1, DAY / Math.max(DAY, range.end - range.start));
+      const slot = chart.innerW * Math.max(.008, stepRatio);
+      const width = Math.max(3, Math.min(34, slot * .58));
+      values.forEach((value, index) => {
+        const height = value / yMax * chart.innerH;
+        const center = chart.x(xRatioForDate(buckets[index].start, range)) + slot / 2;
+        const x = center - width / 2;
+        const y = chart.margin.top + chart.innerH - height;
+        const bar = svgEl("rect", { x, y, width, height: Math.max(value ? 2 : 0, height), rx: Math.min(5, width / 3), fill: "#0067b9" });
+        const title = svgEl("title");
+        title.textContent = `${buckets[index].label} : ${value} incident${value > 1 ? "s" : ""}`;
+        bar.appendChild(title);
+        chart.svg.appendChild(bar);
+      });
+    }
+
+    function renderCharts(range, devices, control) {
+      const complianceRange = getRangeForPeriod(state.chartPeriods.compliance || state.period);
+      const delayRange = getRangeForPeriod(state.chartPeriods.delay || state.period);
+      const incidentRange = getRangeForPeriod(state.chartPeriods.incidents || state.period);
+      const complianceDevices = filteredDevices(complianceRange);
+      const delayDevices = filteredDevices(delayRange);
+      const incidentDevices = filteredDevices(incidentRange);
+      const complianceBuckets = makeBuckets(complianceRange);
+      const conformity = complianceBuckets.map(bucket => {
+        if (!complianceDevices.length) return null;
+        const at = new Date(Math.min(bucket.end.getTime(), DEMO_NOW.getTime()));
+        return complianceDevices.filter(device => operationalStateAt(device, at)).length / complianceDevices.length * 100;
+      });
+      const delayBuckets = makeBuckets(delayRange);
+      const delay = delayBuckets.map(bucket => {
+        if (state.incident !== "all" && state.incident !== "alarm") return null;
+        const alarms = resolvedAlarms({ start: bucket.start, end: bucket.end }, delayDevices);
+        return alarms.length ? alarms.reduce((sum, incident) => sum + delayMinutes(incident), 0) / alarms.length : null;
+      });
+      const incidentBuckets = makeBuckets(incidentRange);
+      const counts = incidentBuckets.map(bucket => openingIncidents({ start: bucket.start, end: bucket.end }, incidentDevices).length);
+
+      renderLineChart(byId("compliance-chart"), complianceBuckets, conformity, {
+        yMin: 0, yMax: 100, yTicks: [0, 25, 50, 75, 100], color: "#17875d", unit: " %",
+        ariaLabel: "Évolution du taux d’E-PREDICT opérationnels", range:complianceRange,
+        emptyTitle: "Aucune donnée de conformité", emptyDetail: "Modifiez les filtres pour élargir la sélection.",
+        annotation: control ? {
+          date: control.nextInspection,
+          range:complianceRange,
+          label: `${dateOnly(control.nextInspection)} · ${control.shortName}`,
+          tooltip: `${dateOnly(control.nextInspection)} · E‑PREDICT : ${control.shortName} · Type d’équipement : ${control.equipmentType} · ${control.location}`
+        } : null
+      });
+      renderLineChart(byId("delay-chart"), delayBuckets, delay, {
+        yMin: 0, yMax: 40, yTicks: [0, 10, 20, 30, 40], color: "#00a4d6", unit: " min", reference: 15, referenceColor: "#d9364f",
+        ariaLabel: "Évolution du délai moyen d’intervention", range:delayRange,
+        emptyTitle: state.incident !== "all" && state.incident !== "alarm" ? "Le délai concerne uniquement les alarmes" : "Aucune alarme acquittée",
+        emptyDetail: "Le délai est calculé entre la première alarme et son Acknowledge."
+      });
+      renderBarChart(byId("incident-chart"), incidentBuckets, counts, incidentRange);
+      byId("annual-marker-info").textContent = control
+        ? `${dateOnly(control.nextInspection)} · ${control.shortName} · ${control.equipmentType}. Détail complet dans le KPI.`
+        : "Aucun contrôle annuel dans le périmètre filtré.";
+    }
+
+    function historyCategoryMatch(event) {
+      if (state.historyCategory === "all") return true;
+      if (state.historyCategory === "incidents") return ["Alarm", "Periodic_ping_Alarm", "Alert", "Periodic_ping_Alert", "Disconnection", "Periodic_ping_Disconnection", "System"].includes(event.eventType);
+      if (state.historyCategory === "ack") return event.eventType === "Acknowledge";
+      if (state.historyCategory === "normal") return event.eventType === "Return_to_normal";
+      if (state.historyCategory === "communication") return ["KeepAlive_ping", "Periodic_Configuration"].includes(event.eventType);
+      if (state.historyCategory === "inspection") return event.eventType === "Annual_inspection_test";
+      return true;
+    }
+
+    function filteredHistory() {
+      const range = getPeriodRange();
+      const devices = filteredDevices(range);
+      const query = state.historySearch.trim().toLocaleLowerCase("fr");
+      return events.filter(event => eventMatchesGlobal(event, range, devices) && historyCategoryMatch(event)).filter(event => {
+        if (!query) return true;
+        const device = event.deviceId ? deviceMap.get(event.deviceId) : null;
+        const haystack = [event.eventType, event.message, event.name, event.systemEventType, device?.equipmentType, device?.location].join(" ").toLocaleLowerCase("fr");
+        return haystack.includes(query);
+      }).sort((a, b) => new Date(b.timestampUtc) - new Date(a.timestampUtc));
+    }
+
+    function eventPillClass(event) {
+      if (["Alarm", "Periodic_ping_Alarm"].includes(event.eventType)) return "alarm";
+      if (["Alert", "Periodic_ping_Alert", "Disconnection", "Periodic_ping_Disconnection"].includes(event.eventType)) return "alert";
+      if (["Acknowledge", "Return_to_normal", "Annual_inspection_test"].includes(event.eventType)) return "ok";
+      if (event.eventType === "System") return "system";
+      return "";
+    }
+
+    function renderHistory() {
+      const rows = filteredHistory();
+      const pages = Math.max(1, Math.ceil(rows.length / state.pageSize));
+      state.historyPage = clamp(state.historyPage, 1, pages);
+      const start = (state.historyPage - 1) * state.pageSize;
+      const pageRows = rows.slice(start, start + state.pageSize);
+      byId("history-body").innerHTML = pageRows.length ? pageRows.map(event => {
+        const device = event.deviceId ? deviceMap.get(event.deviceId) : null;
+        return `<tr>
+          <td>${dateTime(event.timestampUtc)}<div class="muted">UTC</div></td>
+          <td><strong>${esc(device?.name || "IHM")}</strong><div class="muted">eventID ${event.eventID}</div></td>
+          <td>${esc(device?.equipmentType || "—")}</td>
+          <td>${esc(device?.location || "Niveau IHM")}</td>
+          <td><span class="event-pill ${eventPillClass(event)}">${esc(event.eventType)}</span></td>
+          <td>${esc(event.message)}${event.systemEventType ? `<div class="muted">${esc(event.systemEventType)} · systemState ${event.systemState}</div>` : ""}</td>
+          <td><button class="detail-btn" type="button" data-event-id="${event.eventID}">Voir la trame</button></td>
+        </tr>`;
+      }).join("") : `<tr><td colspan="7"><div class="chart-empty"><div><strong>Aucune trame correspondante</strong><span>Modifiez la recherche ou les filtres actifs.</span></div></div></td></tr>`;
+      byId("history-count").textContent = `${rows.length.toLocaleString("fr-FR")} trame${rows.length > 1 ? "s" : ""} · ${state.pageSize} par page`;
+      byId("page-indicator").textContent = `Page ${state.historyPage} / ${pages}`;
+      byId("page-prev").disabled = state.historyPage <= 1;
+      byId("page-next").disabled = state.historyPage >= pages;
+      $$("[data-event-id]").forEach(button => button.addEventListener("click", () => showEventDetail(Number(button.dataset.eventId))));
+    }
+
+    function showEventDetail(eventId) {
+      const event = events.find(item => item.eventID === eventId);
+      if (!event) return;
+      const device = event.deviceId ? deviceMap.get(event.deviceId) : null;
+      const payload = {
+        topic: event.topic,
+        envelope: { hmiId:event.hmiId, eventID:event.eventID, version:1, iv:'[masqué dans la maquette]', data:'[payload chiffré]', hmac:'[masqué dans la maquette]' },
+        decodedPayload:event.rawPayload,
+        metadataBTM:device ? { typeEquipement:device.equipmentType, serialNumber:device.serialNumber, version:device.version } : null,
+        source:event.dataOrigin
+      };
+      byId("dialog-json").textContent = JSON.stringify(payload, null, 2);
+      const dialog = byId("event-dialog");
+      if (typeof dialog.showModal === "function") dialog.showModal(); else dialog.setAttribute("open", "");
+    }
+
+    function syncFilterVisuals() {
+      const filters = [
+        ["period-filter", state.period !== "month"],
+        ["equipment-filter", state.equipment !== "all"],
+        ["incident-filter", state.incident !== "all"],
+        ["date-from", state.period === "custom"],
+        ["date-to", state.period === "custom"]
+      ];
+      filters.forEach(([id, active]) => {
+        const control = byId(id);
+        const field = control && typeof control.closest === "function" ? control.closest(".field") : null;
+        if (!field) return;
+        field.classList[active ? "add" : "remove"]("is-active-filter");
+      });
+    }
+
+    const PERIOD_CHOICES = [
+      ['day','Jour'],['week','Semaine'],['month','Mois'],['quarter','3 mois'],
+      ['half','6 mois'],['year','Année'],['history','Tout l’historique'],['custom','Entre deux dates']
+    ];
+    const CHART_PERIOD_IDS = { compliance:'period-compliance', delay:'period-delay', incidents:'period-incidents' };
+    function initChartPeriodControls() {
+      Object.entries(CHART_PERIOD_IDS).forEach(([key,id]) => {
+        const select = byId(id);
+        select.innerHTML = PERIOD_CHOICES.map(([value,label]) => `<option value="${value}">${label}</option>`).join('');
+        select.addEventListener('change', event => {
+          state.chartPeriods[key] = event.target.value === state.period ? null : event.target.value;
+          renderSummary();
+          syncChartPeriodControls();
+        });
+      });
+    }
+    function syncChartPeriodControls() {
+      Object.entries(CHART_PERIOD_IDS).forEach(([key,id]) => {
+        const select = byId(id);
+        const local = state.chartPeriods[key];
+        select.value = local || state.period;
+        select.classList.toggle('is-local', Boolean(local));
+        select.title = local ? 'Période locale appliquée à ce graphique' : 'Période synchronisée avec le filtre global';
+      });
+    }
+
+    function renderAll() {
+      syncFilterVisuals();
+      syncChartPeriodControls();
+      renderOperationalBanner();
+      renderSummary();
+      renderHistory();
+    }
+
+    function switchView(view) {
+      state.view = view;
+      $$(".nav-btn").forEach(button => button.setAttribute("aria-selected", String(button.dataset.view === view)));
+      byId("dashboard-view").hidden = view !== "dashboard";
+      byId("history-view").hidden = view !== "history";
+      byId("page-title").textContent = view === "dashboard" ? "Dashboard du site" : "Historique du site";
+      if (view === "history") renderHistory(); else renderSummary();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function resetGlobalFilters() {
+      state.period = "month";
+      state.equipment = "all";
+      state.incident = "all";
+      state.customFrom = "2026-09-01";
+      state.customTo = "2026-09-12";
+      state.chartPeriods = { compliance:null, delay:null, incidents:null };
+      byId("period-filter").value = state.period;
+      byId("equipment-filter").value = state.equipment;
+      byId("incident-filter").value = state.incident;
+      byId("date-from").value = state.customFrom;
+      byId("date-to").value = state.customTo;
+      byId("custom-dates").hidden = true;
+      state.historyPage = 1;
+      renderAll();
+      showToast("Filtres réinitialisés");
+    }
+
+    function csvCell(value) { const text = String(value ?? ""); return `"${text.replace(/"/g, '""')}"`; }
+    function exportCsv() {
+      const rows = filteredHistory();
+      const headers = ["siteId", "hmiId", "eventID", "dateUtc", "eventType", "systemEventType", "systemState", "epredictName", "typeEquipement", "emplacement", "message"];
+      const lines = [headers.map(csvCell).join(";")];
+      rows.forEach(event => {
+        const device = event.deviceId ? deviceMap.get(event.deviceId) : null;
+        lines.push([
+          SITE.id, SITE.hmiId, event.eventID, event.timestampUtc, event.eventType, event.systemEventType || "", event.systemState ?? "",
+          device?.name || "IHM", device?.equipmentType || "", device?.location || "Niveau IHM", event.message
+        ].map(csvCell).join(";"));
+      });
+      const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `e-predict-site-horizon-${state.period}-2026-09-12.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 500);
+      showToast(`${rows.length} trame${rows.length > 1 ? "s" : ""} exportée${rows.length > 1 ? "s" : ""}`);
+    }
+
+    let toastTimer;
+    function showToast(message) {
+      const toast = byId("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    initChartPeriodControls();
+    $$(".nav-btn").forEach(button => button.addEventListener("click", () => switchView(button.dataset.view)));
+    byId('show-history').addEventListener('click', () => switchView('history'));
+    byId('feedback-button').addEventListener('click', () => showToast('Ouverture du module Feedback BTM à connecter en intégration'));
+    byId("period-filter").addEventListener("change", event => {
+      state.period = event.target.value;
+      byId("custom-dates").hidden = state.period !== "custom";
+      state.historyPage = 1;
+      renderAll();
+    });
+    byId("equipment-filter").addEventListener("change", event => { state.equipment = event.target.value; state.historyPage = 1; renderAll(); });
+    byId("incident-filter").addEventListener("change", event => { state.incident = event.target.value; state.historyPage = 1; renderAll(); });
+    byId("date-from").addEventListener("change", event => {
+      state.customFrom = event.target.value;
+      if (state.customFrom > state.customTo) { state.customTo = state.customFrom; byId("date-to").value = state.customTo; }
+      state.historyPage = 1; renderAll();
+    });
+    byId("date-to").addEventListener("change", event => {
+      state.customTo = event.target.value;
+      if (state.customTo < state.customFrom) { state.customFrom = state.customTo; byId("date-from").value = state.customFrom; }
+      state.historyPage = 1; renderAll();
+    });
+    byId("reset-filters").addEventListener("click", resetGlobalFilters);
+    byId("history-search").addEventListener("input", event => { state.historySearch = event.target.value; state.historyPage = 1; renderHistory(); });
+    byId("history-event-filter").addEventListener("change", event => { state.historyCategory = event.target.value; state.historyPage = 1; renderHistory(); });
+    byId("reset-history").addEventListener("click", () => {
+      state.historySearch = ""; state.historyCategory = "all"; state.historyPage = 1;
+      byId("history-search").value = ""; byId("history-event-filter").value = "all"; renderHistory(); showToast("Historique réinitialisé");
+    });
+    byId("page-prev").addEventListener("click", () => { state.historyPage -= 1; renderHistory(); });
+    byId("page-next").addEventListener("click", () => { state.historyPage += 1; renderHistory(); });
+    byId("dialog-close").addEventListener("click", () => byId("event-dialog").close());
+    byId("event-dialog").addEventListener("click", event => { if (event.target === byId("event-dialog")) byId("event-dialog").close(); });
+    byId("export-csv").addEventListener("click", exportCsv);
+    window.addEventListener("resize", () => { if (state.view === "dashboard") renderSummary(); });
+
+    renderAll();
+  </script>
+</body>
+</html>
