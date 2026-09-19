@@ -1275,6 +1275,7 @@
     "use strict";
 
     const DEMO_NOW = new Date("2026-09-12T00:06:00Z");
+    const HOUR = 3600000;
     const DAY = 86400000;
     const SITE = {
       id: "SITE-SYRINXPAN-001",
@@ -1583,22 +1584,33 @@
       renderCharts(range, devices, control);
     }
 
+    function visibleRange(range) {
+      const end = new Date(Math.min(range.end.getTime(), DEMO_NOW.getTime()));
+      return { ...range, end: end < range.start ? new Date(range.start) : end };
+    }
+
+    function bucketLabel(date, step) {
+      if (step < DAY) return `${String(date.getUTCHours()).padStart(2, "0")} h`;
+      if (step >= 28 * DAY) return new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit", timeZone: "UTC" }).format(date);
+      return shortDate(date);
+    }
+
     function makeBuckets(range) {
-      const visibleEnd = new Date(Math.min(range.end.getTime(), DEMO_NOW.getTime()));
-      const durationDays = Math.max(1, Math.ceil((visibleEnd - range.start) / DAY));
-      let stepDays = 1;
-      if (durationDays > 250) stepDays = 30;
-      else if (durationDays > 120) stepDays = 14;
-      else if (durationDays > 55) stepDays = 7;
-      else if (durationDays > 20) stepDays = 3;
+      const displayed = visibleRange(range);
+      const duration = Math.max(1, displayed.end.getTime() - displayed.start.getTime());
+      let step = HOUR;
+      if (duration > 240 * DAY) step = 30 * DAY;
+      else if (duration > 120 * DAY) step = 14 * DAY;
+      else if (duration > 35 * DAY) step = 7 * DAY;
+      else if (duration > 2 * DAY) step = DAY;
       const buckets = [];
-      let cursor = new Date(range.start);
-      while (cursor <= visibleEnd) {
-        const end = new Date(Math.min(cursor.getTime() + stepDays * DAY - 1, visibleEnd.getTime()));
-        buckets.push({ start: new Date(cursor), end, label: stepDays >= 14 ? new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit", timeZone: "UTC" }).format(cursor) : shortDate(cursor) });
-        cursor = new Date(cursor.getTime() + stepDays * DAY);
+      let cursor = new Date(displayed.start);
+      while (cursor <= displayed.end) {
+        const end = new Date(Math.min(cursor.getTime() + step - 1, displayed.end.getTime()));
+        buckets.push({ start: new Date(cursor), end, label: bucketLabel(cursor, step) });
+        cursor = new Date(cursor.getTime() + step);
       }
-      return buckets.length ? buckets : [{ start: new Date(range.start), end: visibleEnd, label: shortDate(range.start) }];
+      return buckets;
     }
 
     function svgEl(name, attrs = {}) {
@@ -1631,16 +1643,18 @@
     }
 
     function addXAxis(chart, buckets, range) {
-      const duration = Math.max(DAY, range.end.getTime() - range.start.getTime());
+      const duration = Math.max(1, range.end.getTime() - range.start.getTime());
       const durationDays = duration / DAY;
-      const tickCount = window.innerWidth < 560 ? 4 : 7;
+      const tickCount = duration <= 2 * HOUR ? (window.innerWidth < 560 ? 3 : 4) : (window.innerWidth < 560 ? 4 : 7);
       const seenLabels = new Set();
       for (let index = 0; index < tickCount; index += 1) {
         const ratio = tickCount === 1 ? 0 : index / (tickCount - 1);
         const date = new Date(range.start.getTime() + duration * ratio);
-        const labelText = durationDays > 75
-          ? new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit", timeZone: "UTC" }).format(date)
-          : shortDate(date);
+        const labelText = durationDays <= 2
+          ? new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" }).format(date)
+          : durationDays > 75
+            ? new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit", timeZone: "UTC" }).format(date)
+            : shortDate(date);
         if (seenLabels.has(labelText)) continue;
         seenLabels.add(labelText);
         const label = svgEl("text", {
@@ -1653,6 +1667,28 @@
         label.textContent = labelText;
         chart.svg.appendChild(label);
       }
+    }
+
+    function addCategoricalXAxis(chart, buckets) {
+      if (!buckets.length) return;
+      const tickCount = Math.min(window.innerWidth < 560 ? 4 : 6, buckets.length);
+      const indices = new Set();
+      for (let tick = 0; tick < tickCount; tick += 1) {
+        const index = tickCount === 1 ? 0 : Math.round(tick * (buckets.length - 1) / (tickCount - 1));
+        indices.add(index);
+      }
+      indices.forEach(index => {
+        const centerRatio = (index + .5) / buckets.length;
+        const label = svgEl("text", {
+          x: chart.x(centerRatio),
+          y: chart.height - 14,
+          "text-anchor": "middle",
+          fill: "#777b75",
+          "font-size": 10
+        });
+        label.textContent = buckets[index].label;
+        chart.svg.appendChild(label);
+      });
     }
 
     function showChartEmpty(container, title, detail) {
@@ -1735,15 +1771,13 @@
         }));
       }
 
-      const stepRatio = buckets.length > 1
-        ? xRatioForDate(buckets[1].start, options.range) - xRatioForDate(buckets[0].start, options.range)
-        : Math.min(1, DAY / Math.max(DAY, options.range.end - options.range.start));
-      const slot = chart.innerW * Math.max(.012, stepRatio);
-      const width = Math.max(10, Math.min(42, slot * .56));
       values.forEach((value, index) => {
         if (value === null || !Number.isFinite(value)) return;
+        const bucket = buckets[index];
+        const bucketRatio = Math.max(.012, (bucket.end.getTime() - bucket.start.getTime() + 1) / Math.max(1, options.range.end - options.range.start));
+        const width = Math.max(10, Math.min(42, chart.innerW * bucketRatio * .56));
         const height = value / yMax * chart.innerH;
-        const midpoint = new Date((buckets[index].start.getTime() + buckets[index].end.getTime()) / 2);
+        const midpoint = new Date((bucket.start.getTime() + bucket.end.getTime()) / 2);
         const x = chart.x(xRatioForDate(midpoint, options.range)) - width / 2;
         const y = chart.margin.top + chart.innerH - height;
         const bar = svgEl("rect", {
@@ -1762,16 +1796,15 @@
     }
 
     function renderBarChart(container, buckets, values, range) {
-      const max = Math.max(1, ...values);
-      const yMax = Math.max(4, Math.ceil(max / 2) * 2);
+      const max = Math.max(0, ...values);
+      const yMax = max <= 2 ? 2 : Math.ceil(max / 2) * 2;
       const chart = chartScaffold(container, 0, yMax, [0, Math.round(yMax / 2), yMax], "Nombre d’incidents par période");
-      addXAxis(chart, buckets, range);
-      const stepRatio = buckets.length > 1 ? xRatioForDate(buckets[1].start, range) - xRatioForDate(buckets[0].start, range) : Math.min(1, DAY / Math.max(DAY, range.end - range.start));
-      const slot = chart.innerW * Math.max(.008, stepRatio);
-      const width = Math.max(3, Math.min(34, slot * .58));
+      addCategoricalXAxis(chart, buckets);
+      const slot = chart.innerW / Math.max(1, buckets.length);
+      const width = Math.max(8, Math.min(34, slot * .58));
       values.forEach((value, index) => {
         const height = value / yMax * chart.innerH;
-        const center = chart.x(xRatioForDate(buckets[index].start, range)) + slot / 2;
+        const center = chart.margin.left + slot * (index + .5);
         const x = center - width / 2;
         const y = chart.margin.top + chart.innerH - height;
         const bar = svgEl("rect", { x, y, width, height: Math.max(value ? 2 : 0, height), rx: Math.min(5, width / 3), fill: "#667065" });
@@ -1779,6 +1812,11 @@
         title.textContent = `${buckets[index].label} : ${value} incident${value > 1 ? "s" : ""}`;
         bar.appendChild(title);
         chart.svg.appendChild(bar);
+        if (value > 0) {
+          const valueLabel = svgEl("text", { x: center, y: Math.max(chart.margin.top + 11, y - 7), "text-anchor": "middle", fill: "#4d574e", "font-size": 11, "font-weight": 800 });
+          valueLabel.textContent = value;
+          chart.svg.appendChild(valueLabel);
+        }
       });
     }
 
@@ -1786,6 +1824,9 @@
       const complianceRange = getRangeForPeriod(state.chartPeriods.compliance || state.period);
       const delayRange = getRangeForPeriod(state.chartPeriods.delay || state.period);
       const incidentRange = getRangeForPeriod(state.chartPeriods.incidents || state.period);
+      const complianceDisplayRange = visibleRange(complianceRange);
+      const delayDisplayRange = visibleRange(delayRange);
+      const incidentDisplayRange = visibleRange(incidentRange);
       const complianceDevices = filteredDevices(complianceRange);
       const delayDevices = filteredDevices(delayRange);
       const incidentDevices = filteredDevices(incidentRange);
@@ -1806,22 +1847,22 @@
 
       renderLineChart(byId("compliance-chart"), complianceBuckets, conformity, {
         yMin: 0, yMax: 100, yTicks: [0, 25, 50, 75, 100], color: "#17875d", unit: " %",
-        ariaLabel: "Évolution du taux d’E-PREDICT opérationnels", range:complianceRange,
+        ariaLabel: "Évolution du taux d’E-PREDICT opérationnels", range:complianceDisplayRange,
         emptyTitle: "Aucune donnée de conformité", emptyDetail: "Modifiez les filtres pour élargir la sélection.",
         annotation: control ? {
           date: control.nextInspection,
-          range:complianceRange,
+          range:complianceDisplayRange,
           label: `${dateOnly(control.nextInspection)} · ${control.shortName}`,
           tooltip: `${dateOnly(control.nextInspection)} · E‑PREDICT : ${control.shortName} · Type d’équipement : ${control.equipmentType} · ${control.location}`
         } : null
       });
       renderMetricBarChart(byId("delay-chart"), delayBuckets, delay, {
         yMax: 40, color: "#8d735a", unit: " min", reference: 15, referenceColor: "#d9364f",
-        ariaLabel: "Évolution du délai moyen d’intervention", range:delayRange,
+        ariaLabel: "Évolution du délai moyen d’intervention", range:delayDisplayRange,
         emptyTitle: state.incident !== "all" && state.incident !== "alarm" ? "Le délai concerne uniquement les alarmes" : "Aucune alarme acquittée",
         emptyDetail: "Le délai est calculé entre la première alarme et son Acknowledge."
       });
-      renderBarChart(byId("incident-chart"), incidentBuckets, counts, incidentRange);
+      renderBarChart(byId("incident-chart"), incidentBuckets, counts, incidentDisplayRange);
       byId("annual-marker-info").textContent = control
         ? `${dateOnly(control.nextInspection)} · ${control.shortName} · ${control.equipmentType}. Détail complet dans le KPI.`
         : "Aucun contrôle annuel dans le périmètre filtré.";
