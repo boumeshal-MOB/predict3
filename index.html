@@ -1008,9 +1008,10 @@
     }
 
     @media print {
-      @page { size: A4 landscape; margin: 10mm; }
+      @page { size: A4 landscape; margin: 7mm; }
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-      body { background: #fff !important; }
+      html, body { height: auto !important; overflow: visible !important; }
+      body { background: #fff !important; font-size: 10px; }
       .app.page { display: block; }
       .sidebar,
       .top-actions,
@@ -1022,22 +1023,43 @@
       .main { padding: 0; }
       .topbar,
       .operational-banner { position: static; }
-      .operational-banner { margin-bottom: 12px; box-shadow: none; }
+      .topbar { min-height: 0; margin-bottom: 8px; padding: 0; }
+      .title-wrap h1 { margin-top: 2px; font-size: 21px; }
+      .topbar-subtitle { margin-top: 3px; }
+      .operational-banner { min-height: 0; margin-bottom: 8px; padding: 10px 12px; box-shadow: none; }
+      .banner-light { width: 13px; height: 13px; box-shadow: 0 0 0 4px rgba(133,146,166,.14); }
       #dashboard-view { display: block !important; }
-      .filter-panel.filters { grid-template-columns: repeat(3, 1fr); box-shadow: none; }
+      .filter-panel.filters { margin-bottom: 9px; padding: 10px 12px; grid-template-columns: repeat(3, 1fr); box-shadow: none; }
       .filter-panel .btn,
       .custom-dates[hidden] { display: none !important; }
-      .kpi-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
-      .kpi-card { min-height: 138px; padding: 14px; }
-      .chart-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-      .chart-card { min-height: 360px; padding: 12px; break-inside: avoid; box-shadow: none; }
+      .section-head { margin-bottom: 7px; break-after: avoid-page; }
+      .section-head h2 { font-size: 16px; }
+      .kpi-grid { grid-template-columns: repeat(4, 1fr); gap: 7px; }
+      .kpi-card { min-height: 108px; padding: 10px 11px; }
+      .kpi-label { min-height: 26px; font-size: 9px; }
+      .kpi-value { font-size: 26px; }
+      .kpi-note { font-size: 9px; }
+      .kpi-badge { margin-top: 5px; padding: 3px 6px; }
+      section[aria-labelledby="charts-title"] { margin-top: 10px; }
+      .chart-grid { grid-template-columns: repeat(2, 1fr); gap: 7px; }
+      .chart-card { min-height: 236px; padding: 9px 10px; break-inside: avoid-page; box-shadow: none; }
       .chart-card.full { grid-column: 1 / -1; }
       .chart-box,
-      .chart-box svg { min-height: 250px; height: 250px; }
+      .chart-box svg { min-height: 172px; height: 172px; }
+      .chart-head.chart-title { row-gap: 5px; }
+      .chart-head h3 { font-size: 12px; }
+      .chart-head p,
+      .legend-item,
+      .annual-hint { font-size: 8px; }
+      .chart-period { height: 28px; min-width: 100px; }
+      .annual-hint { margin-top: 5px; padding: 5px 7px; }
+      .chart-card.full { break-before: page; }
       .site-banner,
       .general-info,
       .filter-panel,
       .kpi-card { break-inside: avoid; box-shadow: none; }
+      .site-banner { margin-top: 8px; }
+      .general-info { margin-top: 8px; padding: 12px; }
       .content { padding: 0; }
     }
   </style>
@@ -1218,6 +1240,8 @@
               <div class="general-item"><span>Support HDSN</span><strong>sav@hdsn.fr</strong></div>
               <div class="general-item"><span>Dernier message reçu</span><strong id="last-message">—</strong></div>
               <div class="general-item"><span>Seuil sans communication</span><strong>60 min · configurable</strong></div>
+              <div class="general-item"><span>Seuil E‑PREDICT non opérationnel</span><strong>24 h · configurable</strong></div>
+              <div class="general-item"><span>Seuil alarme</span><strong>1 h · configurable</strong></div>
               <div class="general-item"><span>Notifications</span><strong>Watchdog BTM configurable · e-mail/SMS à cadrer</strong></div>
             </div>
             <div class="support-actions"><button class="btn primary" type="button" id="feedback-button">Ouvrir une demande via Feedback BTM</button><span class="support-chip">Urgence : coordonnées et hotline à renseigner</span></div>
@@ -1368,8 +1392,8 @@
     ];
     const incidents = [
       {id:'INC-346',deviceId:'EP-1',kind:'alarm',open:new Date('2026-09-11T18:39:16Z'),acknowledge:new Date('2026-09-11T18:48:58Z'),close:new Date('2026-09-11T19:24:44Z'),message:'Alarme EP1'},
-      {id:'INC-352',deviceId:'EP-1',kind:'disconnection',open:new Date('2026-09-11T19:32:08Z'),acknowledge:null,close:null,currentActive:false,reconciledAt:new Date('2026-09-12T00:00:02Z'),message:'Déconnexion EP1 — état courant régularisé par Periodic_Configuration ; clôture métier en attente de confirmation'},
-      {id:'INC-360',deviceId:'EP-1',kind:'alert',open:new Date('2026-09-11T20:34:19Z'),acknowledge:new Date('2026-09-11T21:29:55Z'),close:null,currentActive:false,reconciledAt:new Date('2026-09-12T00:00:02Z'),message:'Alerte EP1 — état courant régularisé par Periodic_Configuration ; Return_to_normal absent'},
+      {id:'INC-352',deviceId:'EP-1',kind:'disconnection',open:new Date('2026-09-11T19:32:08Z'),acknowledge:null,close:null,message:'Déconnexion EP1 active — Return_to_normal absent'},
+      {id:'INC-360',deviceId:'EP-1',kind:'alert',open:new Date('2026-09-11T20:34:19Z'),acknowledge:new Date('2026-09-11T21:29:55Z'),close:null,message:'Alerte EP1 acquittée sur l’IHM, mais toujours active — Return_to_normal absent'},
       {id:'INC-369',deviceId:null,kind:'system',open:new Date('2026-09-12T00:02:40Z'),acknowledge:null,close:new Date('2026-09-12T00:05:41Z'),message:'HW_Error fermé par HW_Recovery'}
     ];
 
@@ -1421,8 +1445,27 @@
     }
     function getPeriodRange() { return getRangeForPeriod(state.period); }
 
+    function latestConfigurationAt(at = DEMO_NOW) {
+      return events
+        .filter(event => event.eventType === "Periodic_Configuration" && new Date(event.timestampUtc) <= at)
+        .sort((a, b) => new Date(b.timestampUtc) - new Date(a.timestampUtc))[0] || null;
+    }
+
+    function configuredDevicesAt(at = DEMO_NOW) {
+      const configuration = latestConfigurationAt(at);
+      const configuredNames = new Set((configuration?.rawPayload.devices || []).map(device => device.name));
+      return configuredNames.size ? DEVICES.filter(device => configuredNames.has(device.name)) : [...DEVICES];
+    }
+
+    function declaredDeviceCountAt(at = DEMO_NOW) {
+      const configuration = latestConfigurationAt(at);
+      const declared = Number.parseInt(configuration?.rawPayload.numberOfEPREDICT, 10);
+      return Number.isFinite(declared) ? declared : configuredDevicesAt(at).length;
+    }
+
     function baseDevices() {
-      return state.equipment === "all" ? [...DEVICES] : DEVICES.filter(device => device.equipmentType === state.equipment);
+      const configured = configuredDevicesAt(DEMO_NOW);
+      return state.equipment === "all" ? configured : configured.filter(device => device.equipmentType === state.equipment);
     }
 
     function openingIncidents(range, devices = baseDevices()) {
@@ -1460,29 +1503,33 @@
       let productIssue = false;
       let disconnected = false;
       let hmiIssue = false;
-      events.forEach(event => {
+      let hasCommunication = false;
+      events.slice().sort((a,b) => new Date(a.timestampUtc) - new Date(b.timestampUtc)).forEach(event => {
         const time = new Date(event.timestampUtc);
         if (time > at) return;
         if (event.eventType === "System" && event.systemEventType === "HW_Error" && event.systemState === 0) hmiIssue = true;
         if (event.eventType === "System" && event.systemEventType === "HW_Recovery" && event.systemState === 1) hmiIssue = false;
         if (event.eventType === "Periodic_Configuration") {
           const snapshot = (event.rawPayload.devices || []).find(item => item.name === device.name);
-          if (snapshot?.state === "OK") { productIssue = false; disconnected = false; }
+          if (snapshot) hasCommunication = true;
           if (snapshot?.state === "Alert") productIssue = true;
           if (snapshot?.state === "Disconnection") disconnected = true;
         }
-        if (event.deviceId === device.id) {
+        const sameInput = !event.rawPayload.input || event.rawPayload.input === device.input;
+        if (event.deviceId === device.id && sameInput) {
+          hasCommunication = true;
           if (event.eventType === "Alert") productIssue = true;
           if (event.eventType === "Disconnection") disconnected = true;
           if (event.eventType === "Return_to_normal") { productIssue = false; disconnected = false; }
         }
         (event.rawPayload.devices || []).forEach(item => {
-          if (item.name !== device.name) return;
+          if (item.name !== device.name || (item.input && item.input !== device.input)) return;
+          hasCommunication = true;
           if (event.eventType === "Periodic_ping_Alert") productIssue = true;
           if (event.eventType === "Periodic_ping_Disconnection") disconnected = true;
         });
       });
-      return !(productIssue || disconnected || hmiIssue);
+      return hasCommunication && !(productIssue || disconnected || hmiIssue);
     }
 
     function hmiStateAt(at) {
@@ -1501,33 +1548,35 @@
     }
 
     function renderOperationalBanner() {
-      const operational = DEVICES.filter(device => operationalStateAt(device, DEMO_NOW));
+      const configuredDevices = configuredDevicesAt(DEMO_NOW);
+      const declaredCount = declaredDeviceCountAt(DEMO_NOW);
+      const operational = configuredDevices.filter(device => operationalStateAt(device, DEMO_NOW));
       const hmi = hmiStateAt(DEMO_NOW);
       const activeAlarms = incidents.filter(item => item.kind === 'alarm' && item.currentActive !== false && item.open <= DEMO_NOW && (!item.close || item.close > DEMO_NOW));
-      const nonOperational = DEVICES.filter(device => !operationalStateAt(device, DEMO_NOW));
-      let site = {color:'green', label:`${operational.length} E‑PREDICT opérationnels`, detail:`Parc déclaré : ${DEVICES.length} E‑PREDICT`};
+      const nonOperational = configuredDevices.filter(device => !operationalStateAt(device, DEMO_NOW));
+      let site = {color:'green', label:`${operational.length} E‑PREDICT opérationnels`, detail:`Parc déclaré par MQTT : ${declaredCount} E‑PREDICT`};
       const oldestBlocking = incidents.filter(item => ['alert','disconnection'].includes(item.kind) && item.currentActive !== false && (!item.close || item.close > DEMO_NOW)).sort((a,b) => a.open - b.open)[0];
       const oldestAlarm = activeAlarms.slice().sort((a,b) => a.open - b.open)[0];
       const blockingHours = oldestBlocking ? (DEMO_NOW - oldestBlocking.open) / 3600000 : 0;
       const alarmHours = oldestAlarm ? (DEMO_NOW - oldestAlarm.open) / 3600000 : 0;
-      if (nonOperational.length && blockingHours >= SITE.warningThresholdHours) site = {color:'orange', label:`${nonOperational.length} E‑PREDICT non opérationnel${nonOperational.length > 1 ? 's' : ''}`, detail:`${nonOperational.map(device => device.shortName).join(', ')} · depuis ${dateTime(oldestBlocking.open)} UTC`};
-      else if (nonOperational.length) site = {color:'', label:'Événement non opérationnel sous le seuil', detail:`Seuil d’affichage orange : ${SITE.warningThresholdHours} h · règle à confirmer`};
       if (activeAlarms.length && alarmHours >= SITE.alarmThresholdHours) site = {color:'red', label:`${activeAlarms.length} E‑PREDICT en alarme`, detail:`${activeAlarms.map(item => deviceMap.get(item.deviceId)?.shortName || item.deviceId).join(', ')} · depuis ${dateTime(oldestAlarm.open)} UTC`};
       else if (activeAlarms.length) site = {color:'', label:'Alarme sous le seuil configuré', detail:`Seuil d’affichage rouge : ${SITE.alarmThresholdHours} h · règle à confirmer`};
+      if (nonOperational.length && oldestBlocking && blockingHours >= SITE.warningThresholdHours) site = {color:'orange', label:`${nonOperational.length} E‑PREDICT non opérationnel${nonOperational.length > 1 ? 's' : ''}`, detail:`${nonOperational.map(device => device.shortName).join(', ')} · depuis ${dateTime(oldestBlocking.open)} UTC`};
+      else if (nonOperational.length) site = {color:'', label:`${nonOperational.length} E‑PREDICT non opérationnel${nonOperational.length > 1 ? 's' : ''}`, detail: oldestBlocking ? `${nonOperational.map(device => device.shortName).join(', ')} · depuis ${dateTime(oldestBlocking.open)} UTC · seuil orange ${SITE.warningThresholdHours} h` : `Défaut SCAPREDICT actif · seuil orange ${SITE.warningThresholdHours} h`};
       byId('site-banner-light').className = `banner-light ${site.color}`;
       byId('site-banner-title').textContent = site.label;
       byId('site-banner-detail').textContent = site.detail;
       byId('hmi-banner-light').className = `banner-light ${hmi.color}`;
       byId('hmi-banner-title').textContent = hmi.label;
       byId('hmi-banner-detail').textContent = `${hmi.detail} · seuil ${SITE.communicationTimeoutMinutes} min`;
-      const annualDue = DEVICES.some(device => device.nextInspection <= DEMO_NOW);
-      const siteStatus = activeAlarms.length ? 'Alarme en cours' : nonOperational.length || hmi.color !== 'green' ? 'Alerte système' : annualDue ? 'Contrôle annuel' : 'Conforme';
+      const annualDue = configuredDevices.some(device => device.nextInspection <= DEMO_NOW);
+      const siteStatus = nonOperational.length || hmi.color !== 'green' ? 'Alerte système' : activeAlarms.length ? 'Alarme en cours' : annualDue ? 'Contrôle annuel' : 'Conforme';
       byId('site-status').textContent = siteStatus;
       const statusDot = document.querySelector('.status-dot');
       if (statusDot) statusDot.style.background = siteStatus === 'Conforme' ? '#26ad61' : siteStatus === 'Alarme en cours' ? '#a61f2b' : '#f59e0b';
       const last = events.slice().sort((a,b) => new Date(b.timestampUtc) - new Date(a.timestampUtc))[0];
       byId('last-message').textContent = last ? `${dateTime(last.timestampUtc)} UTC · ${last.eventType}` : 'Aucun message';
-      byId('sidebar-device-count').textContent = DEVICES.length;
+      byId('sidebar-device-count').textContent = declaredCount;
       byId('sidebar-open-actions').textContent = activeAlarms.length + nonOperational.length + (hmi.color === 'green' ? 0 : 1);
     }
 
@@ -1558,7 +1607,7 @@
       // Seul le filtre d'équipement peut réduire le parc concerné.
       const control = nextInspection(baseDevices());
 
-      byId("device-count-banner").textContent = DEVICES.length;
+      byId("device-count-banner").textContent = declaredDeviceCountAt(DEMO_NOW);
       byId("kpi-operational").textContent = rate === null ? "—" : `${rate.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`;
       byId("kpi-operational-note").textContent = devices.length ? `${operational} opérationnels sur ${devices.length} E‑PREDICT éligibles` : "Aucun E‑PREDICT pour ces filtres";
       byId("kpi-delay").textContent = avgDelay === null ? "—" : `${avgDelay.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} min`;
