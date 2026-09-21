@@ -1210,7 +1210,7 @@
               </article>
               <article class="chart-card card full">
                 <div class="chart-head chart-title">
-                  <div><h3>Nombre d’incidents par période</h3><p>Alarmes, alertes, déconnexions et événements système</p></div>
+                  <div><h3>Nombre d’incidents par période</h3><p>Alarmes, alertes et déconnexions ouvertes sur la période</p></div>
                   <select class="chart-period" id="period-incidents" aria-label="Période du graphique des incidents"></select>
                   <div class="legend"><span class="legend-item"><i class="legend-swatch" style="--legend-color:#667065"></i>Incidents</span></div>
                 </div>
@@ -1242,7 +1242,6 @@
               <div class="general-item"><span>Seuil sans communication</span><strong>60 min · configurable</strong></div>
               <div class="general-item"><span>Seuil E‑PREDICT non opérationnel</span><strong>24 h · configurable</strong></div>
               <div class="general-item"><span>Seuil alarme</span><strong>1 h · configurable</strong></div>
-              <div class="general-item"><span>Notifications</span><strong>Watchdog BTM configurable · e-mail/SMS à cadrer</strong></div>
             </div>
             <div class="support-actions"><button class="btn primary" type="button" id="feedback-button">Ouvrir une demande via Feedback BTM</button><span class="support-chip">Urgence : coordonnées et hotline à renseigner</span></div>
           </section>
@@ -1390,12 +1389,100 @@
       makeEvent(369,{eventType:'System',systemEventType:'HW_Error',systemState:0,message:"Erreur système:Fond de panier d'entrée 192.168.0.6 non connecté",dateUtc:'2026-09-12 00:02:40'},'system',"Erreur matérielle de la SCAPREDICT"),
       makeEvent(370,{eventType:'System',systemEventType:'HW_Recovery',systemState:1,message:'Système restauré : toutes les erreurs ont été corrigées.',dateUtc:'2026-09-12 00:05:41'},'system','SCAPREDICT restaurée')
     ];
-    const incidents = [
-      {id:'INC-346',deviceId:'EP-1',kind:'alarm',open:new Date('2026-09-11T18:39:16Z'),acknowledge:new Date('2026-09-11T18:48:58Z'),close:new Date('2026-09-11T19:24:44Z'),message:'Alarme EP1'},
-      {id:'INC-352',deviceId:'EP-1',kind:'disconnection',open:new Date('2026-09-11T19:32:08Z'),acknowledge:null,close:null,message:'Déconnexion EP1 active — Return_to_normal absent'},
-      {id:'INC-360',deviceId:'EP-1',kind:'alert',open:new Date('2026-09-11T20:34:19Z'),acknowledge:new Date('2026-09-11T21:29:55Z'),close:null,message:'Alerte EP1 acquittée sur l’IHM, mais toujours active — Return_to_normal absent'},
-      {id:'INC-369',deviceId:null,kind:'system',open:new Date('2026-09-12T00:02:40Z'),acknowledge:null,close:new Date('2026-09-12T00:05:41Z'),message:'HW_Error fermé par HW_Recovery'}
-    ];
+    const EVENT_KIND = {
+      Alarm: 'alarm',
+      Alert: 'alert',
+      Disconnection: 'disconnection',
+      Periodic_ping_Alarm: 'alarm',
+      Periodic_ping_Alert: 'alert',
+      Periodic_ping_Disconnection: 'disconnection'
+    };
+
+    function buildProductIncidents(sourceEvents) {
+      const result = [];
+      const active = new Map();
+      const key = (deviceId, kind) => `${deviceId}|${kind}`;
+      const deviceIdForName = name => deviceByName.get(name)?.id || null;
+      const openIncident = (event, deviceId, kind, fromPeriodicFrame = false) => {
+        if (!deviceId || active.has(key(deviceId, kind))) return active.get(key(deviceId, kind)) || null;
+        if (kind === 'alert') {
+          const previousAlarm = active.get(key(deviceId, 'alarm'));
+          if (previousAlarm) previousAlarm.acknowledgeNotRequired = true;
+        }
+        const incident = {
+          id:`INC-${event.eventID}-${deviceId}-${kind}`,
+          deviceId,
+          kind,
+          open:new Date(event.timestampUtc),
+          acknowledge:null,
+          returnToNormal:null,
+          close:null,
+          acknowledgeNotRequired:false,
+          createdFromPeriodicFrame:fromPeriodicFrame,
+          sourceEventType:event.eventType,
+          lastSeen:new Date(event.timestampUtc),
+          message:`${INCIDENT_LABELS[kind]} ${DEVICES.find(device => device.id === deviceId)?.shortName || deviceId}`
+        };
+        result.push(incident);
+        active.set(key(deviceId, kind), incident);
+        return incident;
+      };
+
+      sourceEvents.slice().sort((a,b) => new Date(a.timestampUtc) - new Date(b.timestampUtc)).forEach(event => {
+        const at = new Date(event.timestampUtc);
+        if (['Alarm','Alert','Disconnection'].includes(event.eventType)) {
+          openIncident(event, event.deviceId, EVENT_KIND[event.eventType]);
+          return;
+        }
+        if (event.eventType === 'Periodic_ping_Alarm' || event.eventType === 'Periodic_ping_Alert') {
+          const kind = EVENT_KIND[event.eventType];
+          (event.rawPayload.devices || []).forEach(item => {
+            if (item.state !== (kind === 'alarm' ? 'Alarm' : 'Alert')) return;
+            const deviceId = deviceIdForName(item.name);
+            const incident = openIncident(event, deviceId, kind, true);
+            if (incident) incident.lastSeen = at;
+          });
+          return;
+        }
+        if (event.eventType === 'Periodic_ping_Disconnection') {
+          (event.rawPayload.devices || []).forEach(item => {
+            if (item.state !== 'Disconnection') return;
+            const deviceId = deviceIdForName(item.name);
+            const incident = active.get(key(deviceId, 'disconnection'));
+            if (incident) incident.lastSeen = at;
+          });
+          return;
+        }
+        if (event.eventType === 'Acknowledge') {
+          const candidates = ['alarm','alert']
+            .map(kind => active.get(key(event.deviceId, kind)))
+            .filter(Boolean)
+            .sort((a,b) => b.open - a.open);
+          const target = candidates[0];
+          if (!target) return;
+          target.acknowledge = at;
+          if (target.returnToNormal) {
+            target.close = new Date(Math.max(target.acknowledge, target.returnToNormal));
+            active.delete(key(target.deviceId, target.kind));
+          }
+          return;
+        }
+        if (event.eventType === 'Return_to_normal') {
+          ['alarm','alert','disconnection'].forEach(kind => {
+            const incident = active.get(key(event.deviceId, kind));
+            if (!incident) return;
+            incident.returnToNormal = at;
+            if (kind === 'disconnection' || incident.acknowledge || incident.acknowledgeNotRequired) {
+              incident.close = at;
+              active.delete(key(incident.deviceId, incident.kind));
+            }
+          });
+        }
+      });
+      return result;
+    }
+
+    const incidents = buildProductIncidents(events);
 
     const state = {
       view: "dashboard",
@@ -1482,7 +1569,7 @@
       const devices = baseDevices();
       if (state.incident === "all") return devices;
       if (state.incident === "system") {
-        const hasSystem = incidents.some(incident => incident.kind === "system" && incident.open >= range.start && incident.open <= range.end);
+        const hasSystem = events.some(event => event.eventType === 'System' && new Date(event.timestampUtc) >= range.start && new Date(event.timestampUtc) <= range.end);
         return hasSystem ? devices : [];
       }
       const ids = new Set(incidents.filter(incident => incident.kind === state.incident && incident.open >= range.start && incident.open <= range.end).map(incident => incident.deviceId));
@@ -1499,37 +1586,35 @@
       return event.incidentKind === state.incident;
     }
 
-    function operationalStateAt(device, at) {
-      let productIssue = false;
-      let disconnected = false;
-      let hmiIssue = false;
-      let hasCommunication = false;
-      events.slice().sort((a,b) => new Date(a.timestampUtc) - new Date(b.timestampUtc)).forEach(event => {
-        const time = new Date(event.timestampUtc);
-        if (time > at) return;
-        if (event.eventType === "System" && event.systemEventType === "HW_Error" && event.systemState === 0) hmiIssue = true;
-        if (event.eventType === "System" && event.systemEventType === "HW_Recovery" && event.systemState === 1) hmiIssue = false;
-        if (event.eventType === "Periodic_Configuration") {
-          const snapshot = (event.rawPayload.devices || []).find(item => item.name === device.name);
-          if (snapshot) hasCommunication = true;
-          if (snapshot?.state === "Alert") productIssue = true;
-          if (snapshot?.state === "Disconnection") disconnected = true;
-        }
-        const sameInput = !event.rawPayload.input || event.rawPayload.input === device.input;
-        if (event.deviceId === device.id && sameInput) {
-          hasCommunication = true;
-          if (event.eventType === "Alert") productIssue = true;
-          if (event.eventType === "Disconnection") disconnected = true;
-          if (event.eventType === "Return_to_normal") { productIssue = false; disconnected = false; }
-        }
-        (event.rawPayload.devices || []).forEach(item => {
-          if (item.name !== device.name || (item.input && item.input !== device.input)) return;
-          hasCommunication = true;
-          if (event.eventType === "Periodic_ping_Alert") productIssue = true;
-          if (event.eventType === "Periodic_ping_Disconnection") disconnected = true;
-        });
+    function deviceHasCommunicatedAt(device, at) {
+      return events.some(event => {
+        if (new Date(event.timestampUtc) > at) return false;
+        if (event.deviceId === device.id) return true;
+        return (event.rawPayload.devices || []).some(item => item.name === device.name && (!item.input || item.input === device.input));
       });
-      return hasCommunication && !(productIssue || disconnected || hmiIssue);
+    }
+
+    function hmiHardwareErrorAt(at) {
+      let active = false;
+      events.slice().sort((a,b) => new Date(a.timestampUtc) - new Date(b.timestampUtc)).forEach(event => {
+        if (new Date(event.timestampUtc) > at || event.eventType !== 'System') return;
+        if (event.systemEventType === 'HW_Error' && event.systemState === 0) active = true;
+        if (event.systemEventType === 'HW_Recovery' && event.systemState === 1) active = false;
+      });
+      return active;
+    }
+
+    function incidentActiveAt(incident, at) {
+      return incident.open <= at && (!incident.close || incident.close > at);
+    }
+
+    function operationalStateAt(device, at) {
+      const blockingProductIncident = incidents.some(incident =>
+        incident.deviceId === device.id &&
+        ['alert','disconnection'].includes(incident.kind) &&
+        incidentActiveAt(incident, at)
+      );
+      return deviceHasCommunicatedAt(device, at) && !blockingProductIncident && !hmiHardwareErrorAt(at);
     }
 
     function hmiStateAt(at) {
@@ -1552,25 +1637,33 @@
       const declaredCount = declaredDeviceCountAt(DEMO_NOW);
       const operational = configuredDevices.filter(device => operationalStateAt(device, DEMO_NOW));
       const hmi = hmiStateAt(DEMO_NOW);
-      const activeAlarms = incidents.filter(item => item.kind === 'alarm' && item.currentActive !== false && item.open <= DEMO_NOW && (!item.close || item.close > DEMO_NOW));
+      const activeAlarms = incidents.filter(item => item.kind === 'alarm' && incidentActiveAt(item, DEMO_NOW));
       const nonOperational = configuredDevices.filter(device => !operationalStateAt(device, DEMO_NOW));
       let site = {color:'green', label:`${operational.length} E‑PREDICT opérationnels`, detail:`Parc déclaré par MQTT : ${declaredCount} E‑PREDICT`};
-      const oldestBlocking = incidents.filter(item => ['alert','disconnection'].includes(item.kind) && item.currentActive !== false && (!item.close || item.close > DEMO_NOW)).sort((a,b) => a.open - b.open)[0];
+      const oldestBlocking = incidents.filter(item => ['alert','disconnection'].includes(item.kind) && incidentActiveAt(item, DEMO_NOW)).sort((a,b) => a.open - b.open)[0];
       const oldestAlarm = activeAlarms.slice().sort((a,b) => a.open - b.open)[0];
       const blockingHours = oldestBlocking ? (DEMO_NOW - oldestBlocking.open) / 3600000 : 0;
       const alarmHours = oldestAlarm ? (DEMO_NOW - oldestAlarm.open) / 3600000 : 0;
-      if (activeAlarms.length && alarmHours >= SITE.alarmThresholdHours) site = {color:'red', label:`${activeAlarms.length} E‑PREDICT en alarme`, detail:`${activeAlarms.map(item => deviceMap.get(item.deviceId)?.shortName || item.deviceId).join(', ')} · depuis ${dateTime(oldestAlarm.open)} UTC`};
-      else if (activeAlarms.length) site = {color:'', label:'Alarme sous le seuil configuré', detail:`Seuil d’affichage rouge : ${SITE.alarmThresholdHours} h · règle à confirmer`};
-      if (nonOperational.length && oldestBlocking && blockingHours >= SITE.warningThresholdHours) site = {color:'orange', label:`${nonOperational.length} E‑PREDICT non opérationnel${nonOperational.length > 1 ? 's' : ''}`, detail:`${nonOperational.map(device => device.shortName).join(', ')} · depuis ${dateTime(oldestBlocking.open)} UTC`};
-      else if (nonOperational.length) site = {color:'', label:`${nonOperational.length} E‑PREDICT non opérationnel${nonOperational.length > 1 ? 's' : ''}`, detail: oldestBlocking ? `${nonOperational.map(device => device.shortName).join(', ')} · depuis ${dateTime(oldestBlocking.open)} UTC · seuil orange ${SITE.warningThresholdHours} h` : `Défaut SCAPREDICT actif · seuil orange ${SITE.warningThresholdHours} h`};
+      if (activeAlarms.length && alarmHours >= SITE.alarmThresholdHours) {
+        site = {color:'red', label:`${activeAlarms.length} E‑PREDICT en alarme`, detail:`${activeAlarms.map(item => deviceMap.get(item.deviceId)?.shortName || item.deviceId).join(', ')} · depuis ${dateTime(oldestAlarm.open)} UTC`};
+      } else if (activeAlarms.length) {
+        site = {color:'', label:'Alarme sous le seuil configuré', detail:`Seuil d’affichage rouge : ${SITE.alarmThresholdHours} h`};
+      } else if (nonOperational.length && oldestBlocking && blockingHours >= SITE.warningThresholdHours) {
+        site = {color:'orange', label:`${nonOperational.length} E‑PREDICT non opérationnel${nonOperational.length > 1 ? 's' : ''}`, detail:`${nonOperational.map(device => device.shortName).join(', ')} · depuis ${dateTime(oldestBlocking.open)} UTC`};
+      } else if (nonOperational.length) {
+        site = {color:'', label:`${nonOperational.length} E‑PREDICT non opérationnel${nonOperational.length > 1 ? 's' : ''}`, detail: oldestBlocking ? `${nonOperational.map(device => device.shortName).join(', ')} · depuis ${dateTime(oldestBlocking.open)} UTC · seuil orange ${SITE.warningThresholdHours} h` : `Défaut SCAPREDICT actif · seuil orange ${SITE.warningThresholdHours} h`};
+      }
       byId('site-banner-light').className = `banner-light ${site.color}`;
       byId('site-banner-title').textContent = site.label;
       byId('site-banner-detail').textContent = site.detail;
       byId('hmi-banner-light').className = `banner-light ${hmi.color}`;
       byId('hmi-banner-title').textContent = hmi.label;
       byId('hmi-banner-detail').textContent = `${hmi.detail} · seuil ${SITE.communicationTimeoutMinutes} min`;
-      const annualDue = configuredDevices.some(device => device.nextInspection <= DEMO_NOW);
-      const siteStatus = nonOperational.length || hmi.color !== 'green' ? 'Alerte système' : activeAlarms.length ? 'Alarme en cours' : annualDue ? 'Contrôle annuel' : 'Conforme';
+      const annualDue = configuredDevices.some(device => {
+        const nextDate = nextInspectionAt(device, DEMO_NOW);
+        return nextDate && nextDate <= DEMO_NOW;
+      });
+      const siteStatus = activeAlarms.length ? 'Alarme en cours' : nonOperational.length || hmi.color !== 'green' ? 'Alerte système' : annualDue ? 'Contrôle annuel' : 'Conforme';
       byId('site-status').textContent = siteStatus;
       const statusDot = document.querySelector('.status-dot');
       if (statusDot) statusDot.style.background = siteStatus === 'Conforme' ? '#26ad61' : siteStatus === 'Alarme en cours' ? '#a61f2b' : '#f59e0b';
@@ -1580,8 +1673,26 @@
       byId('sidebar-open-actions').textContent = activeAlarms.length + nonOperational.length + (hmi.color === 'green' ? 0 : 1);
     }
 
+    function nextInspectionAt(device, at = DEMO_NOW) {
+      let nextDate = null;
+      events.slice().sort((a,b) => new Date(a.timestampUtc) - new Date(b.timestampUtc)).forEach(event => {
+        if (new Date(event.timestampUtc) > at) return;
+        const payloadDevices = [...(event.rawPayload.devices || []), ...(event.rawPayload.devicesTested || [])];
+        const item = payloadDevices.find(candidate => candidate.name === device.name && (!candidate.input || candidate.input === device.input));
+        if (!item || !item.nextPeriodicTestDateUtc || item.nextPeriodicTestDateUtc === 'NONE') return;
+        const parsed = new Date(item.nextPeriodicTestDateUtc.replace(' ', 'T') + 'Z');
+        if (!Number.isNaN(parsed.getTime())) nextDate = parsed;
+      });
+      return nextDate;
+    }
+
     function nextInspection(devices) {
-      return devices.reduce((closest, device) => !closest || device.nextInspection < closest.nextInspection ? device : closest, null);
+      return devices.reduce((closest, device) => {
+        const candidateDate = nextInspectionAt(device, DEMO_NOW);
+        if (!candidateDate) return closest;
+        const candidate = {...device, nextInspection:candidateDate};
+        return !closest || candidate.nextInspection < closest.nextInspection ? candidate : closest;
+      }, null);
     }
 
     function resolvedAlarms(range, devices) {
